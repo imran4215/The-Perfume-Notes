@@ -94,36 +94,32 @@ const LowerNavbar = () => {
             ))}
           </div>
 
-          {/* Search Bar */}
-          <div
-            className="flex-1 mx-3 md:mx-0 md:flex-none relative"
-            style={{ maxWidth: "400px", paddingLeft: "100px" }}
-            ref={searchRef}
-          >
+          {/* Search Bar - Responsive Positioning */}
+          <div className="flex-1 md:flex-none relative" ref={searchRef}>
             <motion.div
               className="relative w-full"
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <input
-                type="text"
-                placeholder="Search fragrances..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                className="w-[400px] bg-white/90 text-black rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-white/80 transition-all duration-300 hover:bg-white text-sm md:text-base placeholder-gray-600"
-                style={{ position: "relative", left: "-100px" }}
-              />
-              <motion.div
-                animate={{
-                  color: isSearchFocused ? "#c8102e" : "#4b5563",
-                  scale: isSearchFocused ? 1.1 : 1,
-                }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
-                style={{ right: "-90px" }}
-              >
-                <Search size={18} className="mr-30" />
-              </motion.div>
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  placeholder="Search fragrances..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  className="w-full md:w-64 lg:w-80 xl:w-96 bg-white/90 text-black rounded-full px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-white/80 transition-all duration-300 hover:bg-white text-sm md:text-base placeholder-gray-600"
+                />
+                <motion.div
+                  animate={{
+                    color: isSearchFocused ? "#c8102e" : "#4b5563",
+                    scale: isSearchFocused ? 1.1 : 1,
+                  }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                >
+                  <Search size={18} />
+                </motion.div>
+              </div>
 
               {/* Search Results Dropdown */}
               <AnimatePresence>
@@ -134,7 +130,6 @@ const LowerNavbar = () => {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                     className="absolute top-full mt-2 w-full bg-white text-black rounded-lg shadow-lg z-50 overflow-hidden max-h-80 overflow-y-auto"
-                    style={{ width: "400px", left: "-100px" }}
                   >
                     {filteredBlogs.length === 0 ? (
                       <div className="p-4 text-sm text-gray-500">
@@ -189,7 +184,7 @@ const LowerNavbar = () => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="md:hidden bg-[#a00d26] w-full z-50 overflow-hidden rounded-4xl"
+              className="md:hidden bg-[#a00d26] w-full z-50 overflow-hidden  rounded-2xl shadow-lg"
             >
               <div className="flex flex-col items-center py-4 space-y-1 px-4">
                 {mainMenus.map((item) => (
