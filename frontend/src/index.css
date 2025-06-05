@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@tailwind utilities;
+
+@layer base {
+  ol {
+    list-style: decimal;
+    margin-left: 2em;
+  }
+
+  ul {
+    list-style: disc;
+    margin-left: 2em;
+  }
+}
