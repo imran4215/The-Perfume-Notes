@@ -12,8 +12,6 @@ export default function RelatedPerfumesSection({ blogData, brandName }) {
     .sort(() => 0.5 - Math.random())
     .slice(0, 12);
 
-  console.log("Related Perfumes:", relatedPerfumes);
-
   return (
     <div className="p-4 mt-6 sm:mt-10 max-w-7xl mx-auto bg-gray-50">
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">
