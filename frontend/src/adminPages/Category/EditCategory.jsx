@@ -34,7 +34,9 @@ function EditCategory() {
 
     setLoading(true);
     try {
-      await axios.put(`${BASE_URL}/category/updateCategory/${id}`, { name });
+      await axios.put(`${BASE_URL}/api/category/updateCategory/${id}`, {
+        name,
+      });
       toast.success("Category updated successfully");
       navigate("/admin/all-categories");
     } catch (error) {
