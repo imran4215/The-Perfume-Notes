@@ -12,8 +12,8 @@ const NoteDetailsSection1 = ({ noteDetails }) => {
       {/* Cover Image */}
       <div className="relative w-full h-72 md:h-96 lg:h-[400px] overflow-hidden">
         <img
-          src={noteDetails.coverPic.url}
-          alt={noteDetails.name}
+          src={noteDetails?.coverPic?.url || noteDetails?.profilePic?.url || ""}
+          alt={noteDetails?.name || ""}
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent"></div>
@@ -28,8 +28,8 @@ const NoteDetailsSection1 = ({ noteDetails }) => {
             className="w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden border-4 border-white shadow-md"
           >
             <img
-              src={noteDetails.profilePic.url}
-              alt={noteDetails.name}
+              src={noteDetails?.profilePic?.url || ""}
+              alt={noteDetails?.name || ""}
               className="w-full h-full object-cover"
             />
           </motion.div>
@@ -42,7 +42,7 @@ const NoteDetailsSection1 = ({ noteDetails }) => {
               transition={{ delay: 0.2 }}
               className="text-3xl md:text-4xl font-bold mb-1"
             >
-              {noteDetails.name}
+              {noteDetails?.name || " "}
             </motion.h1>
 
             <motion.p
@@ -51,7 +51,7 @@ const NoteDetailsSection1 = ({ noteDetails }) => {
               transition={{ delay: 0.3 }}
               className="text-lg font-medium text-yellow-600 mb-3"
             >
-              {noteDetails.category.name}
+              {noteDetails?.category?.name || " "}
             </motion.p>
 
             <motion.div
@@ -59,7 +59,7 @@ const NoteDetailsSection1 = ({ noteDetails }) => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6, ease: "easeOut" }}
               className="text-base md:text-lg text-gray-700 max-w-3xl leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: noteDetails?.details }}
+              dangerouslySetInnerHTML={{ __html: noteDetails?.details || "" }}
             />
           </div>
         </div>

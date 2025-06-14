@@ -2,6 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function AuthorSection({ author }) {
+  // Fallbacks for all fields
+  const slug = author?.slug || "unknown";
+  const name = author?.name || "Unknown Author";
+  const title = author?.title || ""; // empty string if no title
+  const bio = author?.bio || "";
+  const imageUrl = author?.authorPic?.url || "/default-author.jpg";
+
+  // Extract first name for "Read more" safely
+  const firstName = name.split(" ")[0] || "Author";
+
   return (
     <div className="max-w-4xl mx-auto md:px-4 mt-4 group">
       {/* Section Title */}
@@ -11,10 +21,7 @@ function AuthorSection({ author }) {
       </div>
 
       {/* Entire card is wrapped in Link */}
-      <Link
-        to={`/authors/${author.slug || "unknown"}`}
-        className="block hover:no-underline"
-      >
+      <Link to={`/authors/${slug}`} className="block hover:no-underline">
         <div className="max-w-2xl mx-auto sm:mx-0 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300">
           <div className="p-5">
             <div className="flex items-start">
@@ -22,8 +29,8 @@ function AuthorSection({ author }) {
               <div className="flex-shrink-0 mr-4">
                 <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-white shadow-sm">
                   <img
-                    src={author.authorPic.url}
-                    alt={author.name}
+                    src={imageUrl}
+                    alt={name}
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       e.target.src = "/default-author.jpg";
@@ -35,19 +42,22 @@ function AuthorSection({ author }) {
               {/* Author Info */}
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {author.name},{" "}
-                  <span className="text-sm font-normal text-gray-600">
-                    {author.title}
-                  </span>
+                  {name}
+                  {title && (
+                    <>
+                      ,{" "}
+                      <span className="text-sm font-normal text-gray-600">
+                        {title}
+                      </span>
+                    </>
+                  )}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                  {author.bio}
-                </p>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-2">{bio}</p>
 
                 {/* Read More text on hover */}
                 <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <span className="inline-flex items-center text-sm font-medium text-amber-600 group-hover:text-amber-700 transition-colors">
-                    Read more about {author.name.split(" ")[0]}
+                    Read more about {firstName}
                     <svg
                       className="ml-1 w-4 h-4"
                       fill="none"

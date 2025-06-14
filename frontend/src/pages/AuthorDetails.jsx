@@ -9,10 +9,11 @@ function AuthorDetails() {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
 
-  const filteredBlogs = blogData.filter((blog) => blog.author.slug === slug);
+  // Filter blogs by author slug safely
+  const filteredBlogs = blogData.filter((blog) => blog.author?.slug === slug);
   const author = filteredBlogs.length > 0 ? filteredBlogs[0].author : null;
 
-  // Pagination logic
+  // Pagination calculations
   const indexOfLastArticle = currentPage * articlesPerPage;
   const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
   const currentArticles = filteredBlogs.slice(
@@ -25,6 +26,15 @@ function AuthorDetails() {
     return <div className="text-center py-20">Author not found</div>;
   }
 
+  // Fallback values for author fields
+  const authorName = author.name || "Unknown Author";
+  const authorTitle = author.title || "";
+  const authorBio = author.bio || "";
+  const authorPicUrl = author.authorPic?.url || "/default-author.jpg";
+
+  // Safe first name for "Articles by"
+  const firstName = authorName.split(" ")[0] || "Author";
+
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
   const nextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
@@ -34,15 +44,15 @@ function AuthorDetails() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       {/* Meta tags for SEO */}
       <Helmet>
-        <title>{author.name} - Author at The Perfume Notes</title>
+        <title>{authorName} - Author at The Perfume Notes</title>
         <meta
           name="description"
-          content={`Explore articles written by ${author.name}, a contributor at The Perfume Notes.`}
+          content={`Explore articles written by ${authorName}, a contributor at The Perfume Notes.`}
         />
-        <meta property="og:title" content={`${author.name} - Author`} />
+        <meta property="og:title" content={`${authorName} - Author`} />
         <meta
           property="og:description"
-          content={`Discover the fragrance stories and blogs written by ${author.name}.`}
+          content={`Discover the fragrance stories and blogs written by ${authorName}.`}
         />
         <meta property="og:type" content="profile" />
         <meta
@@ -56,8 +66,8 @@ function AuthorDetails() {
         {/* Left - Image */}
         <div className="w-28 h-28 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0 transform transition-transform duration-300 hover:scale-105">
           <img
-            src={author.authorPic.url}
-            alt={author.name}
+            src={authorPicUrl}
+            alt={authorName}
             className="w-full h-full object-cover"
             onError={(e) => (e.target.src = "/default-author.jpg")}
           />
@@ -66,15 +76,15 @@ function AuthorDetails() {
         {/* Right - Name, Title, Bio */}
         <div className="text-center md:text-left">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
-            {author.name}
+            {authorName}
           </h1>
-          {author.title && (
+          {authorTitle && (
             <h2 className="text-sm sm:text-base md:text-lg text-amber-600 font-medium mb-2 md:mb-3">
-              {author.title}
+              {authorTitle}
             </h2>
           )}
           <p className="text-gray-600 text-xs sm:text-sm md:text-base max-w-3xl ">
-            {author.bio}
+            {authorBio}
           </p>
         </div>
       </div>
@@ -82,35 +92,41 @@ function AuthorDetails() {
       {/* Articles by Author */}
       <div className="border-t border-gray-200 pt-6 md:pt-10">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 text-center">
-          Articles by {author.name.split(" ")[0]}
+          Articles by {firstName}
         </h3>
 
         <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-          {currentArticles.map((article) => (
-            <div
-              key={article._id}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-amber-200 group"
-            >
-              <Link to={`/blogs/${article.slug}`} className="block">
-                <div className="aspect-[4/3] overflow-hidden relative">
-                  <img
-                    src={article.image1.url}
-                    alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                <div className="p-3 md:p-4">
-                  <h4 className="font-semibold text-sm md:text-base text-gray-900 mb-1 line-clamp-2 group-hover:text-amber-600 transition-colors">
-                    {article.title}
-                  </h4>
-                  <div className="text-xs text-amber-600 font-medium opacity-80 group-hover:opacity-100 transition-opacity">
-                    Read Article →
+          {currentArticles.map((article) => {
+            const articleImage = article.image1?.url || "/default-article.jpg";
+            const articleTitle = article.title || "Untitled Article";
+
+            return (
+              <div
+                key={article._id}
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-amber-200 group"
+              >
+                <Link to={`/blogs/${article.slug}`} className="block">
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    <img
+                      src={articleImage}
+                      alt={articleTitle}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => (e.target.src = "/default-article.jpg")}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                </div>
-              </Link>
-            </div>
-          ))}
+                  <div className="p-3 md:p-4">
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900 mb-1 line-clamp-2 group-hover:text-amber-600 transition-colors">
+                      {articleTitle}
+                    </h4>
+                    <div className="text-xs text-amber-600 font-medium opacity-80 group-hover:opacity-100 transition-opacity">
+                      Read Article →
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
 
         {/* Pagination */}

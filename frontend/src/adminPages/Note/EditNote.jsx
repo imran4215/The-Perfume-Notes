@@ -1,4 +1,4 @@
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useAdminDataStore from "../../store/AdminDataStore";
 import JoditEditor from "jodit-react";
@@ -16,8 +16,10 @@ function EditNote() {
     fetchCategoryData();
   }, []);
 
+  // Find the note by id
   const note = notes.find((note) => note._id === id);
 
+  // Initialize formData safely with fallback to empty strings or nulls
   const [formData, setFormData] = useState({
     name: note?.name || "",
     category: note?.category?._id || note?.category || "",
@@ -26,19 +28,23 @@ function EditNote() {
     coverPic: null,
   });
 
+  // Preview images for profile and cover pics
   const [previewProfilePic, setPreviewProfilePic] = useState(
     note?.profilePic?.url || null
   );
   const [previewCoverPic, setPreviewCoverPic] = useState(
     note?.coverPic?.url || null
   );
+
   const [loading, setLoading] = useState(false);
 
+  // Handle text input/select changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle file input changes + preview update
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -53,14 +59,22 @@ function EditNote() {
     }
   };
 
+  // Submit updated note data
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Optional: Add minimal validation if needed
+    if (!formData.name.trim() || !formData.category.trim()) {
+      toast.error("Name and Category are required.");
+      return;
+    }
+
     setLoading(true);
 
     const submitData = new FormData();
-    submitData.append("name", formData.name);
-    submitData.append("category", formData.category);
-    submitData.append("details", formData.details);
+    submitData.append("name", formData.name.trim());
+    submitData.append("category", formData.category.trim());
+    submitData.append("details", formData.details || "");
     if (formData.profilePic)
       submitData.append("profilePic", formData.profilePic);
     if (formData.coverPic) submitData.append("coverPic", formData.coverPic);
@@ -197,7 +211,7 @@ function EditNote() {
           {/* Cover Pic Upload with Preview */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
-              Cover Picture
+              Cover Picture (Optional)
             </label>
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
               <input
@@ -217,7 +231,7 @@ function EditNote() {
             </div>
           </div>
 
-          {/* Submit Button with Loading */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

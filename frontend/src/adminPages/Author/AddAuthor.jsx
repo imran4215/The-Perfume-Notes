@@ -113,14 +113,14 @@ function AddAuthor() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Title*
+                  Title
                 </label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  required
+                  // title is now optional, no required attribute
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Bestselling Author"
                 />

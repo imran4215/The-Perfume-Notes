@@ -31,7 +31,7 @@ function EditAuthor() {
         bio: author.bio || "",
         authorPic: null,
       });
-      setPreviewImage(author.authorPic.url || null);
+      setPreviewImage(author.authorPic?.url || null);
     } else {
       toast.error("Author not found.");
       navigate("/admin/all-authors");
@@ -69,7 +69,8 @@ function EditAuthor() {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
-      formDataToSend.append("title", formData.title);
+      // Title is optional, so send empty string if not provided
+      formDataToSend.append("title", formData.title || "");
       formDataToSend.append("bio", formData.bio);
       if (formData.authorPic) {
         formDataToSend.append("authorPic", formData.authorPic);
@@ -134,14 +135,14 @@ function EditAuthor() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Title*
+                  Title {/* removed * to indicate optional */}
                 </label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  required
+                  // Removed required so it is optional
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>

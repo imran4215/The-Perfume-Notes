@@ -9,12 +9,15 @@ export const addAuthor = async (req, res) => {
   try {
     const { name, title, bio } = req.body;
 
-    if (!name || !title || !bio || !req.files?.authorPic) {
+    // Remove title from required check
+    if (!name || !bio || !req.files?.authorPic) {
       await deleteImage(public_id);
-      return res.status(400).json({ message: "All fields are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, bio and author picture are required" });
     }
 
-    /// Create Slug from title
+    /// Create Slug from name (not title)
     const slug = slugify(name, {
       lower: true,
       strict: true, // Remove special characters
@@ -32,7 +35,7 @@ export const addAuthor = async (req, res) => {
 
     const newAuthor = new Author({
       name,
-      title,
+      title, // optional, can be undefined or empty string
       bio,
       authorPic: {
         url: req.files.authorPic[0].path,
@@ -73,9 +76,10 @@ export const updateAuthor = async (req, res) => {
     const { name, title, bio } = req.body;
     const files = req.files;
 
-    if (!name || !bio || !title) {
+    // Remove title from required check
+    if (!name || !bio) {
       await deleteImage(public_id);
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Name and bio are required" });
     }
 
     const existingAuthor = await Author.findById(id);
@@ -110,7 +114,7 @@ export const updateAuthor = async (req, res) => {
       id,
       {
         name,
-        title,
+        title, // optional, can be undefined or empty string
         bio,
         slug: newSlug,
         authorPic: files?.authorPic

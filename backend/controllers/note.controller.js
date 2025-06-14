@@ -6,20 +6,24 @@ import cloudinary from "../config/cloudinaryConfig.js";
 // Add a new Note
 export const addNote = async (req, res) => {
   const public_id1 = req.files?.profilePic?.[0]?.filename;
-  const public_id2 = req.files?.coverPic?.[0]?.filename;
+  const public_id2 = req.files?.coverPic?.[0]?.filename; // May be undefined
+
   try {
     const { name, category, details } = req.body;
 
-    if (!name || !category || !details || !public_id1 || !public_id2) {
+    // profilePic is required, coverPic is optional now
+    if (!name || !category || !details || !public_id1) {
+      // Delete profilePic if uploaded before error response
       await deleteImage(public_id1);
-      await deleteImage(public_id2);
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({
+        message: "Name, category, details, and profile picture are required.",
+      });
     }
 
-    /// Create Slug from title
+    // Create slug
     const slug = slugify(name, {
       lower: true,
-      strict: true, // Remove special characters
+      strict: true,
       trim: true,
     });
 
@@ -27,13 +31,14 @@ export const addNote = async (req, res) => {
     const existing = await Note.findOne({ slug });
     if (existing) {
       await deleteImage(public_id1);
-      await deleteImage(public_id2);
+      if (public_id2) await deleteImage(public_id2);
       return res
         .status(409)
         .json({ message: "A Note with this name already exists." });
     }
 
-    const newNote = new Note({
+    // Build newNote object dynamically
+    const newNoteData = {
       name,
       category,
       details,
@@ -41,19 +46,25 @@ export const addNote = async (req, res) => {
         url: req.files.profilePic[0].path,
         public_id: public_id1,
       },
-      coverPic: {
+      slug,
+    };
+
+    // Only add coverPic if present
+    if (req.files.coverPic && req.files.coverPic.length > 0) {
+      newNoteData.coverPic = {
         url: req.files.coverPic[0].path,
         public_id: public_id2,
-      },
+      };
+    }
 
-      slug,
-    });
+    const newNote = new Note(newNoteData);
 
     await newNote.save();
+
     res.status(201).json({ message: "Note added successfully", newNote });
   } catch (error) {
     await deleteImage(public_id1);
-    await deleteImage(public_id2);
+    if (public_id2) await deleteImage(public_id2);
     console.error("Error in adding Note:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -77,26 +88,30 @@ export const getAllNotes = async (req, res) => {
 // Update a Note
 export const updateNote = async (req, res) => {
   const public_id1 = req.files?.profilePic?.[0]?.filename;
-  const public_id2 = req.files?.coverPic?.[0]?.filename;
+  const public_id2 = req.files?.coverPic?.[0]?.filename; // may be undefined
+
   try {
     const { id } = req.params;
     const { name, category, details } = req.body;
     const files = req.files;
 
+    // coverPic is optional, so not checked here
     if (!name || !category || !details) {
       await deleteImage(public_id1);
-      await deleteImage(public_id2);
-      return res.status(400).json({ message: "All fields are required" });
+      if (public_id2) await deleteImage(public_id2);
+      return res
+        .status(400)
+        .json({ message: "Name, category and details are required" });
     }
 
     const existingNote = await Note.findById(id);
     if (!existingNote) {
       await deleteImage(public_id1);
-      await deleteImage(public_id2);
+      if (public_id2) await deleteImage(public_id2);
       return res.status(404).json({ message: "Note not found" });
     }
 
-    // Check for slug conflict if name has changed
+    // Slug check if name changed
     let newSlug = existingNote.slug;
     if (name !== existingNote.name) {
       newSlug = slugify(name, { lower: true, strict: true });
@@ -106,14 +121,14 @@ export const updateNote = async (req, res) => {
       });
       if (existingSlug) {
         await deleteImage(public_id1);
-        await deleteImage(public_id2);
+        if (public_id2) await deleteImage(public_id2);
         return res
           .status(400)
           .json({ message: "Another Note with this name already exists" });
       }
     }
 
-    // Delete old Cloudinary image if new one is uploaded
+    // Delete old Cloudinary images only if new ones uploaded
     if (files?.profilePic && existingNote.profilePic?.public_id) {
       await cloudinary.uploader.destroy(existingNote.profilePic.public_id);
     }
@@ -121,7 +136,7 @@ export const updateNote = async (req, res) => {
       await cloudinary.uploader.destroy(existingNote.coverPic.public_id);
     }
 
-    // Update fields
+    // Update Note fields, conditionally update coverPic only if new uploaded
     const updatedNote = await Note.findByIdAndUpdate(
       id,
       {
@@ -148,7 +163,7 @@ export const updateNote = async (req, res) => {
     res.status(200).json({ message: "Note updated successfully", updatedNote });
   } catch (error) {
     await deleteImage(public_id1);
-    await deleteImage(public_id2);
+    if (public_id2) await deleteImage(public_id2);
     console.error("Error in updating Note:", error);
     res.status(500).json({ message: "Internal server error" });
   }

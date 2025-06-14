@@ -43,6 +43,13 @@ function AddNote() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Simple front-end validation for required fields except coverPic (optional)
+    if (!formData.name || !formData.category) {
+      toast.error("Name and Category are required.");
+      return;
+    }
+
     setLoading(true);
 
     const submitData = new FormData();
@@ -159,10 +166,11 @@ function AddNote() {
             </div>
           </div>
 
-          {/* Cover Pic Upload with Preview */}
+          {/* Cover Pic Upload with Preview (Optional) */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
-              Cover Picture
+              Cover Picture{" "}
+              <span className="text-gray-500 text-sm">(Optional)</span>
             </label>
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
               <input
@@ -171,6 +179,7 @@ function AddNote() {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-1/2"
+                // no required attribute here, so optional
               />
               {formData.coverPic && (
                 <img
