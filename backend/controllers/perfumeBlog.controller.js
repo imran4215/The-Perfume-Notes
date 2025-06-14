@@ -7,6 +7,7 @@ import { deleteImage } from "../utils/deleteImage.js";
 export const addBlog = async (req, res) => {
   const public_id1 = req.files?.image1?.[0]?.filename;
   const public_id2 = req.files?.image2?.[0]?.filename;
+
   try {
     const {
       title,
@@ -19,12 +20,13 @@ export const addBlog = async (req, res) => {
       description2,
       author,
     } = req.body;
-    const accords = JSON.parse(req.body.accords);
-    const parsedNotes = JSON.parse(notes);
 
+    const accords = JSON.parse(req.body.accords || "[]");
+    const parsedNotes = JSON.parse(notes || "[]");
+
+    // Check required fields only
     if (
       !title ||
-      !subtitle ||
       !releaseDate ||
       !brand ||
       !perfumer ||
@@ -32,35 +34,36 @@ export const addBlog = async (req, res) => {
       !accords ||
       !description1 ||
       !description2 ||
-      !author ||
-      !req.files?.image1 ||
-      !req.files?.image2
+      !author
     ) {
-      await deleteImage(public_id1);
-      await deleteImage(public_id2);
-      return res.status(400).json({ message: "All fields are required" });
+      // Only delete image if uploaded
+      if (public_id1) await deleteImage(public_id1);
+      if (public_id2) await deleteImage(public_id2);
+
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Create Slug from title
+    // Create slug from title
     const slug = slugify(title, {
       lower: true,
-      strict: true, // Remove special characters
+      strict: true,
       trim: true,
     });
 
-    // Check if slug already exists
+    // Check for existing blog
     const existing = await PerfumeBlog.findOne({ slug });
     if (existing) {
-      await deleteImage(public_id1);
-      await deleteImage(public_id2);
+      if (public_id1) await deleteImage(public_id1);
+      if (public_id2) await deleteImage(public_id2);
       return res
         .status(409)
         .json({ message: "A blog with this title already exists." });
     }
 
-    const newBlog = new PerfumeBlog({
+    // Prepare blog data
+    const newBlogData = {
       title,
-      subtitle,
+      subtitle, // can be undefined
       releaseDate,
       brand,
       perfumer,
@@ -69,24 +72,34 @@ export const addBlog = async (req, res) => {
       description1,
       description2,
       author,
-      image1: {
-        url: req.files.image1[0].path, // Cloudinary URL
-        public_id: req.files.image1[0].filename, // Cloudinary public ID
-      },
-      image2: {
+      slug,
+    };
+
+    // Attach image1 if exists
+    if (req.files?.image1?.[0]) {
+      newBlogData.image1 = {
+        url: req.files.image1[0].path,
+        public_id: req.files.image1[0].filename,
+      };
+    }
+
+    // Attach image2 if exists
+    if (req.files?.image2?.[0]) {
+      newBlogData.image2 = {
         url: req.files.image2[0].path,
         public_id: req.files.image2[0].filename,
-      },
-      slug,
-    });
+      };
+    }
 
+    const newBlog = new PerfumeBlog(newBlogData);
     await newBlog.save();
+
     res
       .status(201)
       .json({ message: "Perfume Blog added successfully", newBlog });
   } catch (error) {
-    await deleteImage(public_id1);
-    await deleteImage(public_id2);
+    if (public_id1) await deleteImage(public_id1);
+    if (public_id2) await deleteImage(public_id2);
     console.error("Error in adding perfume Blog:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -116,123 +129,97 @@ export const getAllBlogs = async (req, res) => {
 
 // Update a Blog
 export const updateBlog = async (req, res) => {
-  const public_id1 = req.files?.image1?.[0]?.filename;
-  const public_id2 = req.files?.image2?.[0]?.filename;
+  const uploadedImage1 = req.files?.image1?.[0];
+  const uploadedImage2 = req.files?.image2?.[0];
+
   try {
     const { id } = req.params;
-    const {
-      title,
-      subtitle,
-      releaseDate,
-      brand,
-      perfumer,
-      notes,
-      description1,
-      description2,
-      author,
-    } = req.body;
-    const accords = JSON.parse(req.body.accords);
-    const parsedNotes = JSON.parse(notes);
-    const files = req.files;
 
-    // Required fields check
-    if (
-      !title ||
-      !subtitle ||
-      !releaseDate ||
-      !brand ||
-      !perfumer ||
-      !notes ||
-      !accords ||
-      !description1 ||
-      !description2 ||
-      !author
-    ) {
-      await deleteImage(public_id1);
-      await deleteImage(public_id2);
-      return res
-        .status(400)
-        .json({ message: "All fields except images are required" });
-    }
-
+    // Fetch current blog
     const existingBlog = await PerfumeBlog.findById(id);
     if (!existingBlog) {
-      await deleteImage(public_id1);
-      await deleteImage(public_id2);
+      if (uploadedImage1) await deleteImage(uploadedImage1.filename);
+      if (uploadedImage2) await deleteImage(uploadedImage2.filename);
       return res.status(404).json({ message: "Perfume blog not found" });
     }
 
-    // Check for slug conflict only if title is changed
-    let newSlug = existingBlog.slug;
-    if (title !== existingBlog.title) {
-      newSlug = slugify(title, { lower: true, strict: true });
+    const updatedFields = { ...existingBlog._doc };
 
-      const existingSlug = await PerfumeBlog.findOne({
+    [
+      "title",
+      "subtitle",
+      "releaseDate",
+      "brand",
+      "perfumer",
+      "description1",
+      "description2",
+      "author",
+    ].forEach((field) => {
+      if (req.body[field] !== undefined && req.body[field] !== "")
+        updatedFields[field] = req.body[field];
+    });
+
+    if (req.body.accords) {
+      try {
+        updatedFields.accords = JSON.parse(req.body.accords);
+      } catch {}
+    }
+    if (req.body.notes) {
+      try {
+        updatedFields.notes = JSON.parse(req.body.notes);
+      } catch {}
+    }
+
+    if (
+      req.body.title &&
+      req.body.title.trim() !== "" &&
+      req.body.title !== existingBlog.title
+    ) {
+      const newSlug = slugify(req.body.title, { lower: true, strict: true });
+      const slugConflict = await PerfumeBlog.findOne({
         slug: newSlug,
         _id: { $ne: id },
       });
-      if (existingSlug) {
-        await deleteImage(public_id1);
-        await deleteImage(public_id2);
+      if (slugConflict) {
+        if (uploadedImage1) await deleteImage(uploadedImage1.filename);
+        if (uploadedImage2) await deleteImage(uploadedImage2.filename);
         return res
           .status(400)
           .json({ message: "Another blog with this title already exists" });
       }
+      updatedFields.slug = newSlug;
     }
 
-    // Delete previous images from Cloudinary if new ones are uploaded
-    if (files?.image1 && existingBlog.image1?.public_id) {
-      await cloudinary.uploader.destroy(existingBlog.image1.public_id);
+    if (uploadedImage1) {
+      if (existingBlog.image1?.public_id)
+        await cloudinary.uploader.destroy(existingBlog.image1.public_id);
+      updatedFields.image1 = {
+        url: uploadedImage1.path,
+        public_id: uploadedImage1.filename,
+      };
     }
-    if (files?.image2 && existingBlog.image2?.public_id) {
-      await cloudinary.uploader.destroy(existingBlog.image2.public_id);
+
+    if (uploadedImage2) {
+      if (existingBlog.image2?.public_id)
+        await cloudinary.uploader.destroy(existingBlog.image2.public_id);
+      updatedFields.image2 = {
+        url: uploadedImage2.path,
+        public_id: uploadedImage2.filename,
+      };
     }
 
-    const updatedImages = {
-      image1: files?.image1
-        ? {
-            url: files.image1[0].path,
-            public_id: files.image1[0].filename,
-          }
-        : existingBlog.image1,
+    const updatedBlog = await PerfumeBlog.findByIdAndUpdate(id, updatedFields, {
+      new: true,
+    });
 
-      image2: files?.image2
-        ? {
-            url: files.image2[0].path,
-            public_id: files.image2[0].filename,
-          }
-        : existingBlog.image2,
-    };
-
-    // Update blog
-    const updatedBlog = await PerfumeBlog.findByIdAndUpdate(
-      id,
-      {
-        title,
-        subtitle,
-        releaseDate,
-        brand,
-        perfumer,
-        notes: parsedNotes,
-        accords,
-        description1,
-        description2,
-        author,
-        image1: updatedImages.image1,
-        image2: updatedImages.image2,
-        slug: newSlug,
-      },
-      { new: true }
-    );
-
-    res.status(200).json({
+    return res.status(200).json({
       message: "Perfume Blog updated successfully",
       updatedBlog,
     });
   } catch (error) {
-    await deleteImage(public_id1);
-    await deleteImage(public_id2);
-    console.error("Error in updating perfume Blog:", error);
+    if (uploadedImage1) await deleteImage(uploadedImage1.filename);
+    if (uploadedImage2) await deleteImage(uploadedImage2.filename);
+    console.error("Error updating perfume Blog:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

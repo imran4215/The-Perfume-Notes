@@ -8,11 +8,9 @@ const perfumerSchema = new mongoose.Schema(
     },
     title: {
       type: String,
-      required: true,
     },
     intro: {
       type: String,
-      required: true,
     },
     bio: {
       type: String,

@@ -9,12 +9,15 @@ export const addPerfumer = async (req, res) => {
   try {
     const { name, title, intro, bio } = req.body;
 
-    if (!name || !title || !intro || !bio || !req.files?.image) {
+    // Only check for required fields: name, bio, and image
+    if (!name || !bio || !req.files?.image) {
       await deleteImage(public_id);
-      return res.status(400).json({ message: "All fields are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, bio, and image are required" });
     }
 
-    /// Create Slug from title
+    // Create Slug from name
     const slug = slugify(name, {
       lower: true,
       strict: true,
@@ -32,8 +35,8 @@ export const addPerfumer = async (req, res) => {
 
     const newPerfumer = new Perfumer({
       name,
-      title,
-      intro,
+      title, // optional
+      intro, // optional
       bio,
       image: {
         url: req.files.image[0].path,
@@ -73,12 +76,13 @@ export const updatePerfumer = async (req, res) => {
   const public_id = req.files?.image?.[0]?.filename;
   try {
     const { id } = req.params;
-    const { name, bio } = req.body;
+    const { name, title, intro, bio } = req.body; // include title and intro optionally
     const files = req.files;
 
+    // Only validate required fields: name and bio
     if (!name || !bio) {
       await deleteImage(public_id);
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Name and bio are required" });
     }
 
     const existingPerfumer = await Perfumer.findById(id);
@@ -87,10 +91,10 @@ export const updatePerfumer = async (req, res) => {
       return res.status(404).json({ message: "Perfumer not found" });
     }
 
-    // Check for slug conflict if name has changed
+    // Check for slug conflict if name changed
     let newSlug = existingPerfumer.slug;
     if (name !== existingPerfumer.name) {
-      newSlug = slugify(name, { lower: true, strict: true });
+      newSlug = slugify(name, { lower: true, strict: true, trim: true });
       const existingSlug = await Perfumer.findOne({
         slug: newSlug,
         _id: { $ne: id },
@@ -103,17 +107,18 @@ export const updatePerfumer = async (req, res) => {
       }
     }
 
-    // Delete old Cloudinary image if new one is uploaded
+    // Delete old Cloudinary image if new image uploaded
     if (files?.image && existingPerfumer.image?.public_id) {
       await cloudinary.uploader.destroy(existingPerfumer.image.public_id);
     }
 
-    // Update fields
+    // Update fields, keep title and intro if provided, else keep existing
     const updatedPerfumer = await Perfumer.findByIdAndUpdate(
       id,
       {
         name,
-        slug: newSlug,
+        title: title !== undefined ? title : existingPerfumer.title,
+        intro: intro !== undefined ? intro : existingPerfumer.intro,
         bio,
         image: files?.image
           ? {
@@ -121,6 +126,7 @@ export const updatePerfumer = async (req, res) => {
               public_id: files.image[0].filename,
             }
           : existingPerfumer.image,
+        slug: newSlug,
       },
       { new: true }
     );

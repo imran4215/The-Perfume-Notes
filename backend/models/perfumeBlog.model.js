@@ -8,7 +8,6 @@ const perfumeBlogSchema = new mongoose.Schema(
     },
     subtitle: {
       type: String,
-      required: true,
     },
     releaseDate: {
       type: String,

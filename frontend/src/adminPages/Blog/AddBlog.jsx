@@ -101,22 +101,20 @@ function AddBlog() {
   const validateForm = () => {
     if (
       !formData.title ||
-      !formData.subtitle ||
       !formData.releaseDate ||
       !formData.brand ||
       !formData.perfumer ||
       !formData.description1 ||
-      !formData.description2 ||
       !formData.author
     ) {
       toast.error("Please fill all required fields");
       return false;
     }
 
-    if (!images[0] || !images[1]) {
-      toast.error("Please upload both images");
-      return false;
-    }
+    // if (!images[0] || !images[1]) {
+    //   toast.error("Please upload both images");
+    //   return false;
+    // }
 
     return true;
   };
@@ -190,7 +188,7 @@ function AddBlog() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subtitle*
+              Subtitle
             </label>
             <input
               type="text"
@@ -199,7 +197,6 @@ function AddBlog() {
               onChange={handleChange}
               placeholder="Blog subtitle"
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              required
             />
           </div>
         </div>
@@ -415,14 +412,13 @@ function AddBlog() {
             {[0, 1].map((index) => (
               <div key={index} className="border rounded-lg p-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image {index + 1}*
+                  Image {index + 1}
                 </label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleImageChange(e, index)}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  required
                 />
                 {imagePreviews[index] && (
                   <div className="mt-3">

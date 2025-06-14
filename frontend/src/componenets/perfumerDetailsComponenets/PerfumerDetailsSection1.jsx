@@ -15,8 +15,8 @@ function PerfumerDetailsSection1({ perfumerDetails }) {
         >
           <div className="relative group">
             <img
-              src={perfumerDetails.image.url}
-              alt={perfumerDetails.name}
+              src={perfumerDetails?.image?.url || ""}
+              alt={perfumerDetails?.name || "Perfumer Image"}
               className="w-full h-auto rounded-xl shadow-xl object-cover aspect-square border-4 border-white transform group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute inset-0 rounded-xl border-4 border-transparent group-hover:border-amber-100/50 transition-all duration-300 pointer-events-none"></div>
@@ -32,15 +32,15 @@ function PerfumerDetailsSection1({ perfumerDetails }) {
         >
           <div className="mb-6 pb-6 border-b border-gray-100">
             <h1 className="text-4xl font-bold text-gray-900">
-              {perfumerDetails.name}
+              {perfumerDetails?.name || " "}
             </h1>
             <p className="text-xl text-amber-600 mt-2 font-medium">
-              {perfumerDetails.title}
+              {perfumerDetails?.title || " "}
             </p>
           </div>
 
           <p className="text-lg text-gray-700 leading-relaxed">
-            {perfumerDetails.intro}
+            {perfumerDetails?.intro || " "}
           </p>
 
           {/* Added decorative elements */}
@@ -68,7 +68,7 @@ function PerfumerDetailsSection1({ perfumerDetails }) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.4 }}
         className="prose-lg max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100"
-        dangerouslySetInnerHTML={{ __html: perfumerDetails.bio }}
+        dangerouslySetInnerHTML={{ __html: perfumerDetails?.bio || " " }}
       />
     </div>
   );

@@ -5,12 +5,14 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import useBlogDataStore from "../../store/BlogDataStore";
 
 export default function PerfumerDetailsSection2({ perfumerDetails }) {
-  const { blogData } = useBlogDataStore();
-  const perfumerName = perfumerDetails.name.trim().toLowerCase();
+  const { blogData = [] } = useBlogDataStore();
+
+  // Defensive checks & fallbacks:
+  const perfumerName = perfumerDetails?.name?.trim()?.toLowerCase() || "";
 
   // Filter perfumes based on the perfumer's name from blogData
   const perfumerCreations = blogData.filter(
-    (perfume) => perfume.perfumer.name.trim().toLowerCase() === perfumerName
+    (perfume) => perfume?.perfumer?.name?.trim()?.toLowerCase() === perfumerName
   );
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -40,7 +42,7 @@ export default function PerfumerDetailsSection2({ perfumerDetails }) {
         className="text-center mb-12"
       >
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-          Creations by {perfumerDetails.name}
+          Creations by {perfumerDetails?.name || " "}
         </h2>
         <div className="mt-4 h-1 w-20 bg-amber-400 mx-auto"></div>
       </motion.div>
@@ -54,24 +56,24 @@ export default function PerfumerDetailsSection2({ perfumerDetails }) {
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {visiblePerfumes.map((perfume, index) => (
+            {visiblePerfumes.map((perfume) => (
               <Link
-                to={`/blogs/${perfume.slug}`}
-                key={perfume._id}
+                to={`/blogs/${perfume?.slug || ""}`}
+                key={perfume?._id || Math.random()}
                 className="group"
               >
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                   <div className="relative overflow-hidden aspect-square">
                     <img
-                      src={perfume.image1.url}
-                      alt={perfume.title}
+                      src={perfume?.image1?.url || ""}
+                      alt={perfume?.title || "Perfume Image"}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 sm:p-4"></div>
                   </div>
                   <div className="p-2 sm:p-4">
                     <h3 className="font-medium text-gray-800 text-xs sm:text-base truncate">
-                      {perfume.title}
+                      {perfume?.title || " "}
                     </h3>
                   </div>
                 </div>

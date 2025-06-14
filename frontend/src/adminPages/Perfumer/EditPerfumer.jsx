@@ -31,8 +31,8 @@ function EditPerfumer() {
     if (perfumer) {
       setFormData({
         name: perfumer.name || "",
-        title: perfumer.title || "",
-        intro: perfumer.intro || "",
+        title: perfumer.title || "", // optional
+        intro: perfumer.intro || "", // optional
         bio: perfumer.bio || "",
         image: null,
       });
@@ -60,14 +60,22 @@ function EditPerfumer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Only require name
+    if (!formData.name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("intro", formData.intro);
-      formDataToSend.append("bio", formData.bio);
+      formDataToSend.append("name", formData.name.trim());
+      formDataToSend.append("title", formData.title?.trim() || ""); // send empty string if no title
+      formDataToSend.append("intro", formData.intro?.trim() || ""); // send empty string if no intro
+      formDataToSend.append("bio", formData.bio || "");
+
       if (formData.image) {
         formDataToSend.append("image", formData.image);
       }
@@ -114,7 +122,7 @@ function EditPerfumer() {
             {/* Name */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Name*
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -126,37 +134,37 @@ function EditPerfumer() {
               />
             </div>
 
-            {/* Title */}
+            {/* Title (optional) */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Title*
+                Title (optional)
               </label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                required
+                placeholder="e.g. Master Perfumer"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
-            {/* Intro */}
+            {/* Intro (optional) */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Intro*
+                Intro (optional)
               </label>
               <textarea
                 name="intro"
                 value={formData.intro}
                 onChange={handleChange}
                 rows={3}
-                required
+                placeholder="Write a short introduction"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
-            {/* Bio */}
+            {/* Bio (required) */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Bio*
@@ -171,20 +179,12 @@ function EditPerfumer() {
                   }))
                 }
               />
-              {/* <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                rows={5}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              /> */}
             </div>
 
-            {/* Image Upload */}
+            {/* Image Upload (optional) */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                Profile Image
+                Profile Image (optional)
               </label>
               <div className="flex flex-col md:flex-row gap-6 items-start">
                 <div className="flex-1">
@@ -227,6 +227,7 @@ function EditPerfumer() {
                 type="button"
                 onClick={() => navigate(-1)}
                 className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                disabled={isLoading}
               >
                 Cancel
               </button>

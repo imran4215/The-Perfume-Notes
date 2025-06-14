@@ -8,8 +8,8 @@ function AddPerfumer() {
   const editor = useRef(null);
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [intro, setIntro] = useState("");
+  const [title, setTitle] = useState(""); // optional
+  const [intro, setIntro] = useState(""); // optional
   const [bio, setBio] = useState("");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,15 +17,17 @@ function AddPerfumer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !title || !intro || !bio || !image) {
-      toast.error("All fields including image are required");
+
+    // Only name, bio, and image are required now
+    if (!name || !bio || !image) {
+      toast.error("Name, biography, and profile image are required");
       return;
     }
 
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("title", title);
-    formData.append("intro", intro);
+    formData.append("title", title); // can be empty string
+    formData.append("intro", intro); // can be empty string
     formData.append("bio", bio);
     formData.append("image", image);
 
@@ -37,6 +39,8 @@ function AddPerfumer() {
       );
       toast.success("Perfumer added successfully!");
       navigate("/admin/all-perfumers");
+
+      // reset fields
       setName("");
       setTitle("");
       setIntro("");
@@ -51,7 +55,7 @@ function AddPerfumer() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start  bg-gray-100 px-4 mt-18">
+    <div className="min-h-screen flex justify-center items-start bg-gray-100 px-4 mt-18">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-2xl">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">
           Add New Perfumer
@@ -73,6 +77,7 @@ function AddPerfumer() {
               placeholder="Enter perfumer's full name"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               disabled={loading}
+              required
             />
           </div>
 
@@ -81,14 +86,14 @@ function AddPerfumer() {
               htmlFor="title"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Title <span className="text-red-500">*</span>
+              Title {/* optional, no red asterisk */}
             </label>
             <input
               id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Master Perfumer"
+              placeholder="e.g. Master Perfumer (optional)"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               disabled={loading}
             />
@@ -99,14 +104,14 @@ function AddPerfumer() {
               htmlFor="intro"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Introduction <span className="text-red-500">*</span>
+              Introduction {/* optional, no red asterisk */}
             </label>
             <textarea
               id="intro"
               rows="2"
               value={intro}
               onChange={(e) => setIntro(e.target.value)}
-              placeholder="Write a short introduction"
+              placeholder="Write a short introduction (optional)"
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               disabled={loading}
             />
@@ -123,6 +128,8 @@ function AddPerfumer() {
               ref={editor}
               value={bio}
               onChange={(newContent) => setBio(newContent)}
+              tabIndex={1} // To manage focus properly
+              disabled={loading}
             />
           </div>
 
@@ -143,6 +150,7 @@ function AddPerfumer() {
                     type="button"
                     onClick={() => setImage(null)}
                     className="text-sm text-red-600 hover:underline"
+                    disabled={loading}
                   >
                     Remove Image
                   </button>
@@ -155,6 +163,7 @@ function AddPerfumer() {
                     onChange={(e) => setImage(e.target.files[0])}
                     className="hidden"
                     disabled={loading}
+                    required
                   />
                   <span className="text-gray-500">
                     Click to upload or drag image here

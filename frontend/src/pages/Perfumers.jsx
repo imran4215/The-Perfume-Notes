@@ -102,7 +102,9 @@ function Perfumers() {
                   <h3 className="text-base font-semibold text-gray-900">
                     {perfumer.name}
                   </h3>
-                  <p className="text-sm text-gray-600">{perfumer.title}</p>
+                  <p className="text-sm text-gray-600">
+                    {perfumer.title || " "}
+                  </p>
                 </div>
               </Link>
             </motion.div>
