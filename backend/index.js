@@ -24,7 +24,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://the-perfume-notes.vercel.app",
+  "https://www.theperfumenotes.com",
 ];
 
 // Middleware
