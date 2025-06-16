@@ -382,16 +382,26 @@ const AccordEditor = ({ accords, change, add, remove }) => (
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Color
           </label>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
+            {/* Hex Code Input (Editable + Copy/Paste) */}
+            <input
+              type="text"
+              value={a.color}
+              onChange={(e) => change(idx, "color", e.target.value)}
+              className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono"
+              placeholder="#FFFFFF"
+            />
+
+            {/* Color Picker */}
             <input
               type="color"
               value={a.color}
               onChange={(e) => change(idx, "color", e.target.value)}
-              className="h-10 w-10 rounded border border-gray-300"
+              className="h-10 w-10 rounded border border-gray-300 cursor-pointer"
             />
-            <span className="ml-2 text-sm">{a.color}</span>
           </div>
         </div>
+
         {accords.length > 1 && (
           <button
             type="button"

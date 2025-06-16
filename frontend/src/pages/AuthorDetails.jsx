@@ -105,7 +105,7 @@ function AuthorDetails() {
                 key={article._id}
                 className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-amber-200 group"
               >
-                <Link to={`/blogs/${article.slug}`} className="block">
+                <Link to={`/perfume/${article.slug}`} className="block">
                   <div className="aspect-[4/3] overflow-hidden relative">
                     <img
                       src={articleImage}

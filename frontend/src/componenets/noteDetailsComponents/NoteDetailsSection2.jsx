@@ -55,7 +55,11 @@ export default function NoteDetailsSection2({ noteSlug }) {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
             {visibleNotes.map((note) => (
-              <Link to={`/blogs/${note.slug}`} key={note._id} className="group">
+              <Link
+                to={`/perfume/${note.slug}`}
+                key={note._id}
+                className="group"
+              >
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

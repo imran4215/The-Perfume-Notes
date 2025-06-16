@@ -21,7 +21,7 @@ function AuthorSection({ author }) {
       </div>
 
       {/* Entire card is wrapped in Link */}
-      <Link to={`/authors/${slug}`} className="block hover:no-underline">
+      <Link to={`/author/${slug}`} className="block hover:no-underline">
         <div className="max-w-2xl mx-auto sm:mx-0 bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300">
           <div className="p-5">
             <div className="flex items-start">

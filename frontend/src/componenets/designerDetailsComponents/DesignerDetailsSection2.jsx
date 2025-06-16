@@ -45,7 +45,11 @@ export default function DesignerDetailsSection2({ brandSlug, brandName }) {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
             {visiblePerfumes.map((blog) => (
-              <Link to={`/blogs/${blog.slug}`} key={blog._id} className="group">
+              <Link
+                to={`/perfume/${blog.slug}`}
+                key={blog._id}
+                className="group"
+              >
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                   <div className="relative overflow-hidden aspect-square">
                     <img

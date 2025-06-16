@@ -18,6 +18,8 @@ const storage = new CloudinaryStorage({
       folder: `The Perfume Notes/${subFolder}`,
       allowedFormats: ["jpg", "png", "jpeg", "webp"],
       public_id: Date.now() + "-" + file.originalname.split(".")[0],
+      transformation: [{ format: "webp" }],
+      format: "webp",
     };
   },
 });

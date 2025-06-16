@@ -44,22 +44,23 @@ export default function BlogDetailsSection1({ blogDetails = {} }) {
               {blogDetails.title}
             </h1>
           )}
-          {blogDetails?.subtitle && (
-            <h2 className="text-lg sm:text-xl text-gray-600 mt-1 mb-2">
-              {blogDetails.subtitle}
-            </h2>
-          )}
 
-          {/* Author By‑line */}
-          {blogDetails?.author && (
-            <div className="flex items-center text-sm text-gray-500 mb-3">
-              <span>By</span>
-              <Link
-                to={`/authors/${blogDetails.author?.slug || ""}`}
-                className="ml-1 font-medium text-gray-700"
-              >
-                {blogDetails.author?.name}
-              </Link>
+          {(blogDetails?.subtitle || blogDetails?.author) && (
+            <div className="flex flex-wrap items-center gap-x-2 text-sm sm:text-base text-gray-600 mt-1 mb-3">
+              {blogDetails?.subtitle && <span>{blogDetails.subtitle}</span>}
+
+              {blogDetails?.author && (
+                <>
+                  <span className="text-gray-400">•</span>
+                  <span>By</span>
+                  <Link
+                    to={`/author/${blogDetails.author?.slug || ""}`}
+                    className="ml-1 font-medium text-gray-700"
+                  >
+                    {blogDetails.author?.name}
+                  </Link>
+                </>
+              )}
             </div>
           )}
 
@@ -154,7 +155,8 @@ export default function BlogDetailsSection1({ blogDetails = {} }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                className="bg-white p-4 sm:p-5 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+                className="bg-white p-4 sm:p-5 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100
+        md:h-full md:flex md:flex-col md:justify-between"
               >
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">
@@ -169,7 +171,7 @@ export default function BlogDetailsSection1({ blogDetails = {} }) {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="space-y-3 sm:space-y-4"
+                  className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 sm:gap-y-4"
                 >
                   {blogDetails.accords.map((accord, index) => (
                     <motion.div
@@ -182,16 +184,7 @@ export default function BlogDetailsSection1({ blogDetails = {} }) {
                         <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
                           {accord?.name || ""}
                         </span>
-                        <motion.span
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 1.5 + index * 0.1 }}
-                          className="text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-700"
-                        >
-                          {accord?.percentage ?? 0}%
-                        </motion.span>
                       </div>
-
                       <div className="w-full h-1.5 sm:h-2 rounded-full overflow-hidden bg-[#ededed]">
                         <motion.div
                           custom={accord?.percentage}
@@ -199,7 +192,9 @@ export default function BlogDetailsSection1({ blogDetails = {} }) {
                           initial="hidden"
                           animate="visible"
                           className="h-full rounded-full relative"
-                          style={{ backgroundColor: accord?.color || "#ccc" }}
+                          style={{
+                            backgroundColor: accord?.color || "#ccc",
+                          }}
                           whileHover={{ scaleY: 1.5, originY: 1 }}
                         >
                           <div className="absolute inset-0 bg-white/20" />

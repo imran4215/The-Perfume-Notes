@@ -12,7 +12,7 @@ export default function HeroSlider() {
       description:
         "Explore luxury fragrances from the world's most prestigious fashion houses",
       content: "Chanel · Dior · Tom Ford · Gucci · YSL · Versace",
-      bgImage: "designers.jpg",
+      bgImage: "designers.webp",
       cta: "View Designer Perfumes",
       ctaLink: "/designers",
     },
@@ -21,7 +21,7 @@ export default function HeroSlider() {
       description: "Discover the noses behind your favorite scents",
       content:
         "Jacques Polge · Olivier Cresp · Alberto Morillas · Dominique Ropion",
-      bgImage: "perfumer.jpg",
+      bgImage: "perfumer.webp",
       cta: "Meet The Artists",
       ctaLink: "/perfumers",
     },
@@ -30,7 +30,7 @@ export default function HeroSlider() {
       description: "Understand the composition of fine perfumery",
       content:
         "Top: Bergamot, Lemon | Heart: Jasmine, Rose | Base: Sandalwood, Vanilla",
-      bgImage: "notes.jpg",
+      bgImage: "notes.webp",
       cta: "Learn About Notes",
       ctaLink: "/notes",
     },

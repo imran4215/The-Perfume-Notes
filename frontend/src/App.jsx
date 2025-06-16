@@ -56,14 +56,14 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/blogs/:slug" element={<BlogDetails />} />
+          <Route path="/perfume/:slug" element={<BlogDetails />} />
           <Route path="/designers" element={<Designers />} />
           <Route path="/designers/:slug" element={<DesignerDetails />} />
           <Route path="/perfumers" element={<Perfumers />} />
           <Route path="/perfumers/:slug" element={<PerfumerDetails />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/notes/:slug" element={<NoteDetails />} />
-          <Route path="/authors/:slug" element={<AuthorDetails />} />
+          <Route path="/author/:slug" element={<AuthorDetails />} />
           <Route path="/contact-us" element={<ContactUs />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />

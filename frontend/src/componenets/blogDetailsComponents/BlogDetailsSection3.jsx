@@ -27,7 +27,7 @@ export default function RelatedPerfumesSection({ blogData, brandName }) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
           {relatedPerfumes.map((blog) => (
-            <Link to={`/blogs/${blog.slug}`} key={blog._id}>
+            <Link to={`/perfume/${blog.slug}`} key={blog._id}>
               <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
                 <div className="relative overflow-hidden aspect-square">
                   <img

@@ -158,27 +158,20 @@ const Notes = () => {
                       <motion.div
                         variants={item}
                         whileHover={{ y: -5, scale: 1.03 }}
-                        className="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+                        className="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md flex flex-col h-full"
                       >
-                        <div className="aspect-square overflow-hidden">
+                        <div className="aspect-square w-full overflow-hidden">
                           <img
                             src={note.profilePic.url}
                             alt={note.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2">
-                          <h3 className="text-white font-medium text-sm">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2"></div>
+                        <div className="p-2 text-center flex-grow flex flex-col justify-end">
+                          <h3 className="text-gray-900 font-medium text-[13px] line-clamp-2">
                             {note.name}
                           </h3>
-                        </div>
-                        <div className="p-2 text-center">
-                          <h3 className="text-gray-900 font-medium text-sm">
-                            {note.name}
-                          </h3>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {note.category.name}
-                          </p>
                         </div>
                       </motion.div>
                     </Link>

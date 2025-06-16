@@ -111,11 +111,6 @@ function AddBlog() {
       return false;
     }
 
-    // if (!images[0] || !images[1]) {
-    //   toast.error("Please upload both images");
-    //   return false;
-    // }
-
     return true;
   };
 
@@ -341,18 +336,30 @@ function AddBlog() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Color
                 </label>
-                <div className="flex items-center">
+                <div className="flex items-center space-x-3">
+                  {/* Hex Code Input */}
+                  <input
+                    type="text"
+                    value={accord.color}
+                    onChange={(e) =>
+                      handleAccordChange(index, "color", e.target.value)
+                    }
+                    className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono"
+                    placeholder="#FFFFFF"
+                  />
+
+                  {/* Color Picker Input */}
                   <input
                     type="color"
                     value={accord.color}
                     onChange={(e) =>
                       handleAccordChange(index, "color", e.target.value)
                     }
-                    className="h-10 w-10 rounded border border-gray-300"
+                    className="h-10 w-10 rounded border border-gray-300 cursor-pointer"
                   />
-                  <span className="ml-2 text-sm">{accord.color}</span>
                 </div>
               </div>
+
               <div>
                 {accords.length > 1 && (
                   <button

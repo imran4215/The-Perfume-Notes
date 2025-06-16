@@ -32,6 +32,7 @@ export default function BlogDetails() {
   if (!blogDetails) {
     return <PageNotFound />;
   }
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const brandName = blogDetails.brand?.name || "My Blog";
   const author = blogDetails.author;
@@ -40,7 +41,7 @@ export default function BlogDetails() {
     blogDetails.description1 || blogDetails.content?.slice(0, 150) + "...";
   const image =
     blogDetails.image1.url || "https://yourblog.com/default-image.jpg";
-  const url = `http://localhost:5173/blogs/${blogDetails.slug}`;
+  const url = `${BASE_URL}/blogs/${blogDetails.slug}`;
 
   return (
     <div>

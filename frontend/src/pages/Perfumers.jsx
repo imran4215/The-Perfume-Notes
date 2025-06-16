@@ -23,13 +23,13 @@ function Perfumers() {
   }
 
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       {/* Meta tags for SEO */}
       <Helmet>
         <title>Master Perfumers | Explore Fragrance Creators</title>
         <meta
           name="description"
-          content="Discover the talented perfumers behind the world’s most iconic fragrances. Explore their profiles, creations, and unique styles."
+          content="Discover the talented perfumers behind the world's most iconic fragrances. Explore their profiles, creations, and unique styles."
         />
         <meta property="og:title" content="Master Perfumers" />
         <meta
@@ -44,70 +44,59 @@ function Perfumers() {
       </Helmet>
 
       <div className="max-w-7xl mx-auto">
-        {/* Heading */}
+        {/* Compact Heading */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ duration: 0.4 }}
           viewport={{ once: true }}
-          className="text-center mb-14 relative"
+          className="text-center mb-10"
         >
-          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             <span className="relative inline-block">
-              <span className="relative z-10">Choose Your</span>
-              <span className="absolute bottom-0 left-0 w-full h-3 bg-amber-100 opacity-70 -z-0"></span>
-            </span>
-            <br />
-            <span className="font-light">Best Perfumer</span>
+              <span className="relative z-10">Master</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-amber-100 opacity-70 -z-0"></span>
+            </span>{" "}
+            <span className="font-light">Perfumers</span>
           </h2>
-          <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto relative">
-            <span className="relative z-10 px-2 bg-white">
-              Discover the masters behind your favorite fragrances
-            </span>
-            <span className="absolute top-1/2 left-0 w-full h-px bg-gray-200 -z-0"></span>
+          <p className="text-lg text-gray-600 max-w-xl mx-auto">
+            Discover the noses behind iconic fragrances
           </p>
         </motion.div>
 
-        {/* Perfumers Grid */}
+        {/* Compact Perfumers Grid - 6 items per row */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
         >
-          {perfumerData.map((perfumer, index) => (
-            <motion.div
-              key={perfumer._id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -3 }}
-            >
-              <Link
-                to={`/perfumers/${perfumer.slug}`}
-                className="group block bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow duration-300"
+          {perfumerData.map((perfumer) => (
+            <Link to={`/perfumers/${perfumer.slug}`} key={perfumer._id}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
               >
-                <div className="relative pt-[100%] overflow-hidden">
-                  <motion.img
+                <div className="relative aspect-square">
+                  <img
                     src={perfumer.image.url}
                     alt={perfumer.name}
-                    className="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    whileHover={{ scale: 1.05 }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <div className="p-3">
-                  <h3 className="text-base font-semibold text-gray-900">
+                <div className="p-2 text-center">
+                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
                     {perfumer.name}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    {perfumer.title || " "}
-                  </p>
                 </div>
-              </Link>
-            </motion.div>
+              </motion.div>
+            </Link>
           ))}
         </motion.div>
       </div>

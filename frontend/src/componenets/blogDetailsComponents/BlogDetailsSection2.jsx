@@ -8,15 +8,6 @@ export default function BlogDetailsSection2({ blogDetails = {} }) {
 
   return (
     <div className="max-w-4xl mx-auto md:px-4 px-6 py-12">
-      {/* Top Details Paragraph */}
-      {blogDetails?.title && (
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {blogDetails.title}
-          </h2>
-        </div>
-      )}
-
       {/* Notes Section */}
       {(topNotes.length > 0 ||
         middleNotes.length > 0 ||
