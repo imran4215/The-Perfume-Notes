@@ -143,7 +143,7 @@ const LowerNavbar = () => {
                         {filteredBlogs.map((item) => (
                           <Link
                             key={item.slug}
-                            to={`/blogs/${item.slug}`}
+                            to={`/perfume/${item.slug}`}
                             className="flex items-center p-3 hover:bg-gray-100 transition-colors border-b last:border-b-0"
                             onClick={() => {
                               setSearchQuery("");

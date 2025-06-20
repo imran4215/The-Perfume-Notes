@@ -44,6 +44,12 @@ function AddBlog() {
     base: [],
   });
 
+  const [searchTerms, setSearchTerms] = useState({
+    top: "",
+    middle: "",
+    base: "",
+  });
+
   const [accords, setAccords] = useState([
     { name: "", percentage: "", color: "#000000" },
   ]);
@@ -66,6 +72,26 @@ function AddBlog() {
         ? prev[noteType].filter((id) => id !== noteId)
         : [...prev[noteType], noteId],
     }));
+  };
+
+  const handleSearchChange = (noteType, value) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [noteType]: value.toLowerCase(),
+    }));
+  };
+
+  const filteredNotes = (noteType) => {
+    if (!notes) return [];
+
+    // Sort notes alphabetically by name
+    const sortedNotes = [...notes].sort((a, b) => a.name.localeCompare(b.name));
+
+    if (!searchTerms[noteType]) return sortedNotes;
+
+    return sortedNotes.filter((note) =>
+      note.name.toLowerCase().includes(searchTerms[noteType])
+    );
   };
 
   const handleAccordChange = (index, field, value) => {
@@ -270,8 +296,22 @@ function AddBlog() {
                 <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
                   {noteType} Notes
                 </label>
+
+                {/* Search input for each note type */}
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    placeholder={`Search ${noteType} notes...`}
+                    value={searchTerms[noteType]}
+                    onChange={(e) =>
+                      handleSearchChange(noteType, e.target.value)
+                    }
+                    className="w-full p-2 border border-gray-300 rounded text-sm"
+                  />
+                </div>
+
                 <div className="max-h-48 overflow-y-auto space-y-2">
-                  {notes?.map((note) => (
+                  {filteredNotes(noteType)?.map((note) => (
                     <div key={note._id} className="flex items-center">
                       <input
                         type="checkbox"

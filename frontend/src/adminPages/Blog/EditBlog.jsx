@@ -54,6 +54,12 @@ function EditBlog() {
     base: blog?.notes?.base?.map((n) => n._id) || [],
   });
 
+  const [searchTerms, setSearchTerms] = useState({
+    top: "",
+    middle: "",
+    base: "",
+  });
+
   const [accords, setAccords] = useState(
     blog?.accords?.length
       ? blog.accords
@@ -85,6 +91,26 @@ function EditBlog() {
         ? prev[type].filter((id) => id !== noteId)
         : [...prev[type], noteId],
     }));
+  };
+
+  const handleSearchChange = (type, value) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [type]: value.toLowerCase(),
+    }));
+  };
+
+  const filteredNotes = (type) => {
+    if (!notes) return [];
+
+    // Sort notes alphabetically by name
+    const sortedNotes = [...notes].sort((a, b) => a.name.localeCompare(b.name));
+
+    if (!searchTerms[type]) return sortedNotes;
+
+    return sortedNotes.filter((note) =>
+      note.name.toLowerCase().includes(searchTerms[type])
+    );
   };
 
   const handleAccordChange = (idx, field, value) => {
@@ -226,9 +252,11 @@ function EditBlog() {
               <NoteColumn
                 key={type}
                 type={type}
-                notes={notes}
+                notes={filteredNotes(type)}
                 selected={selectedNotes[type]}
                 toggle={handleNoteToggle}
+                searchTerm={searchTerms[type]}
+                onSearchChange={(e) => handleSearchChange(type, e.target.value)}
               />
             ))}
           </div>
@@ -330,11 +358,30 @@ const Select = ({ label, options = [], ...props }) => (
   </div>
 );
 
-const NoteColumn = ({ type, notes, selected, toggle }) => (
+const NoteColumn = ({
+  type,
+  notes,
+  selected,
+  toggle,
+  searchTerm,
+  onSearchChange,
+}) => (
   <div className="border rounded-lg p-3">
     <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
       {type} Notes
     </label>
+
+    {/* Search input */}
+    <div className="mb-3">
+      <input
+        type="text"
+        placeholder={`Search ${type} notes...`}
+        value={searchTerm}
+        onChange={onSearchChange}
+        className="w-full p-2 border border-gray-300 rounded text-sm"
+      />
+    </div>
+
     <div className="max-h-48 overflow-y-auto space-y-2">
       {notes.map((n) => (
         <div key={n._id} className="flex items-center">
