@@ -1,40 +1,31 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useDesignerDataStore from "../../store/DesignerDataStore";
 import Loading from "../Loading";
 import Error404 from "../Error404";
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 30, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 10,
-    },
-  },
-};
-
 export default function DesignersSection1() {
   const { designerData, loading, error, fetchDesignerData } =
     useDesignerDataStore();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredDesigners, setFilteredDesigners] = useState([]);
 
   useEffect(() => {
     fetchDesignerData();
   }, []);
+
+  useEffect(() => {
+    if (designerData && designerData.length > 0) {
+      if (searchTerm.trim() === "") {
+        setFilteredDesigners(designerData);
+      } else {
+        const filtered = designerData.filter((designer) =>
+          designer.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredDesigners(filtered);
+      }
+    }
+  }, [searchTerm, designerData]);
 
   if (loading) {
     return <Loading />;
@@ -45,16 +36,10 @@ export default function DesignersSection1() {
   }
 
   return (
-    <div className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto mt-[-10px]">
         {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          viewport={{ once: true }}
-          className="text-center mb-16 relative"
-        >
+        <div className="text-center mb-8 relative">
           <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
             <span className="relative inline-block">
@@ -70,32 +55,53 @@ export default function DesignersSection1() {
             </span>
             <span className="absolute top-1/2 left-0 w-full h-px bg-gray-200 -z-0"></span>
           </p>
-        </motion.div>
+
+          {/* Search Input */}
+          <div className="mt-8 max-w-md mx-auto">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search designers..."
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <div className="absolute right-3 top-3 text-gray-400">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Designers Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6"
-        >
-          {designerData.map((designer) => (
-            <Link to={`/designers/${designer.slug}`} key={designer._id}>
-              <motion.div
-                variants={itemVariants}
-                whileHover={{
-                  y: -8,
-                  transition: { duration: 0.2 },
-                }}
-                className="group"
+        {filteredDesigners.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+            {filteredDesigners.map((designer) => (
+              <Link
+                to={`/designers/${designer.slug}`}
+                key={designer._id}
+                className="group transition-transform duration-200 hover:-translate-y-1"
               >
-                <div className="bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center transition-all duration-300 h-full border border-gray-100 group-hover:border-amber-100 group-hover:shadow-lg">
-                  <div className="w-28 h-28 sm:w-40 sm:h-40 mb-4 sm:mb-6 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-3 sm:p-4 transform group-hover:scale-105 transition-transform duration-300">
+                <div className="bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center h-full border border-gray-100 group-hover:border-amber-100 group-hover:shadow-lg">
+                  <div className="w-28 h-28 sm:w-40 sm:h-40 mb-4 sm:mb-6 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-3 sm:p-4 transition-transform duration-300 group-hover:scale-105">
                     <img
                       src={designer.logo.url}
                       alt={designer.name}
                       className="w-full h-full object-contain"
+                      loading="lazy"
                     />
                   </div>
                   <h3 className="text-lg sm:text-xl font-medium text-gray-900 text-center">
@@ -103,10 +109,18 @@ export default function DesignersSection1() {
                   </h3>
                   <div className="mt-2 w-8 h-0.5 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-              </motion.div>
-            </Link>
-          ))}
-        </motion.div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-gray-500 text-lg">
+              {searchTerm.trim() === ""
+                ? "No designers available at the moment."
+                : `No designers found for "${searchTerm}"`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

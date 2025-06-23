@@ -11,13 +11,8 @@ export default function Body() {
     fetchBlogData();
   }, []);
 
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <Error404 error={error} />;
-  }
+  if (loading) return <Loading />;
+  if (error) return <Error404 error={error} />;
 
   return (
     <div className="p-4 mt-6 sm:mt-10 max-w-7xl mx-auto bg-gray-50 mb-10">
@@ -32,18 +27,23 @@ export default function Body() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
           {blogData.map((blog) => (
-            <Link to={`/perfume/${blog.slug}`} key={blog._id} className="group">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                <div className="relative overflow-hidden aspect-square">
+            <Link
+              to={`/perfume/${blog.slug}`}
+              key={blog._id}
+              className="group block"
+            >
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
+                <div className="relative aspect-square overflow-hidden">
                   <img
                     src={blog.image1.url}
                     alt={blog.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 sm:p-4"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="p-2 sm:p-4">
-                  <h3 className="font-medium text-gray-800 text-xs sm:text-base truncate">
+                  <h3 className="font-medium text-gray-800 text-xs sm:text-base line-clamp-2">
                     {blog.title}
                   </h3>
                 </div>
