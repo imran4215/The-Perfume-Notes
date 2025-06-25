@@ -3,6 +3,7 @@ import {
   addBlog,
   deleteBlog,
   getAllBlogs,
+  getBlogBySlug,
   updateBlog,
 } from "../controllers/perfumeBlog.controller.js";
 import upload from "../middlewares/multer.js";
@@ -19,6 +20,8 @@ router.post(
 );
 
 router.get("/getAllBlogs", getAllBlogs);
+
+router.get("/getBlogBySlug/:slug", getBlogBySlug);
 
 router.put(
   "/updateBlog/:id",

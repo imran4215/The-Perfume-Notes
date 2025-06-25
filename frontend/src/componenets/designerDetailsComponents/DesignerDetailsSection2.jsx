@@ -47,7 +47,7 @@ export default function DesignerDetailsSection2({ brandSlug, brandName }) {
             {visiblePerfumes.map((blog) => (
               <Link
                 to={`/perfume/${blog.slug}`}
-                key={blog._id}
+                key={blog.slug}
                 className="group"
               >
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">

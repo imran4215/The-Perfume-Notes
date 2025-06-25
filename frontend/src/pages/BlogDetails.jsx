@@ -13,12 +13,13 @@ import AuthorSection from "../componenets/blogDetailsComponents/AuthorSection";
 import { Helmet } from "react-helmet-async";
 
 export default function BlogDetails() {
-  const { blogData, fetchBlogData, loading, error } = useBlogDataStore();
+  const { blogDetails, blogData, fetchBlogDetails, loading, error } =
+    useBlogDataStore();
   const { slug } = useParams();
 
   useEffect(() => {
-    fetchBlogData();
-  }, []);
+    fetchBlogDetails(slug);
+  }, [slug]);
 
   if (loading) {
     return <Loading />;
@@ -28,7 +29,6 @@ export default function BlogDetails() {
     return <Error404 error={error} />;
   }
 
-  const blogDetails = blogData.find((blog) => blog.slug === slug);
   if (!blogDetails) {
     return <PageNotFound />;
   }
@@ -45,7 +45,7 @@ export default function BlogDetails() {
 
   return (
     <div>
-      {/* ✅ Helmet meta tags */}
+      {/* Helmet meta tags */}
       <Helmet>
         <title>
           {title} | {brandName}

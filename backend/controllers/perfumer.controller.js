@@ -59,7 +59,7 @@ export const addPerfumer = async (req, res) => {
 // Get all Perfumers
 export const getAllPerfumers = async (req, res) => {
   try {
-    const perfumers = await Perfumer.find();
+    const perfumers = await Perfumer.find({}, "name image slug");
 
     res.status(200).json({
       message: "Perfumers fetched successfully",
@@ -67,6 +67,24 @@ export const getAllPerfumers = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in fetching perfumer:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get Perfumer by Slug
+export const getPerfumerBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const perfumer = await Perfumer.findOne({ slug });
+    if (!perfumer) {
+      return res.status(404).json({ message: "Perfumer not found" });
+    }
+    res.status(200).json({
+      message: "Perfumer fetched successfully",
+      perfumer: perfumer,
+    });
+  } catch (error) {
+    console.error("Error in fetching perfumer by slug:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -3,6 +3,7 @@ import {
   addDesigner,
   deleteDesigner,
   getAllDesigners,
+  getDesignerBySlug,
   updateDesigner,
 } from "../controllers/designers.controller.js";
 import upload from "../middlewares/multer.js";
@@ -16,6 +17,8 @@ router.post(
 );
 
 router.get("/getAllDesigners", getAllDesigners);
+
+router.get("/getDesignerBySlug/:slug", getDesignerBySlug);
 
 router.put(
   "/updateDesigner/:id",

@@ -10,9 +10,10 @@ import { Helmet } from "react-helmet-async";
 
 function NoteDetails() {
   const { slug } = useParams();
-  const { noteData, loading, error, fetchNoteData } = useNoteDataStore();
+  const { noteDetailsData, fetchNoteDetailsData, loading, error } =
+    useNoteDataStore();
   useEffect(() => {
-    fetchNoteData();
+    fetchNoteDetailsData(slug);
   }, []);
 
   if (loading) {
@@ -22,13 +23,12 @@ function NoteDetails() {
     return <Error404 error={error} />;
   }
 
-  const noteDetails = noteData.find((note) => note.slug === slug);
-  if (!noteDetails) {
+  if (!noteDetailsData) {
     return <PageNotFound />;
   }
 
-  const noteSlug = noteDetails.slug;
-  const noteName = noteDetails.name;
+  const noteSlug = noteDetailsData.slug;
+  const noteName = noteDetailsData.name;
 
   return (
     <div>
@@ -54,7 +54,7 @@ function NoteDetails() {
         />
       </Helmet>
 
-      <NoteDetailsSection1 noteDetails={noteDetails} />
+      <NoteDetailsSection1 noteDetails={noteDetailsData} />
       <NoteDetailsSection2 noteSlug={noteSlug} noteName={noteName} />
     </div>
   );

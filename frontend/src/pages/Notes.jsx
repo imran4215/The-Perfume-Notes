@@ -175,7 +175,7 @@ const Notes = () => {
               {expandedCategories[category] && (
                 <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-9 gap-4">
                   {notes.map((note) => (
-                    <Link to={`/notes/${note.slug}`} key={note._id}>
+                    <Link to={`/notes/${note.slug}`} key={note.slug}>
                       <motion.div
                         initial="hidden"
                         animate="show"

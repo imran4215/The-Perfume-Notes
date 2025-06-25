@@ -107,7 +107,7 @@ function Perfumers() {
             {filteredPerfumers.map((perfumer) => (
               <Link
                 to={`/perfumers/${perfumer.slug}`}
-                key={perfumer._id}
+                key={perfumer.slug}
                 className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="relative aspect-square">

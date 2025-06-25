@@ -10,12 +10,12 @@ import { Helmet } from "react-helmet-async";
 
 function PerfumerDetails() {
   const { slug } = useParams();
-  const { perfumerData, loading, error, fetchPerfumerData } =
+  const { perfumerDetailsData, fetchPerfumerDetailsData, loading, error } =
     usePerfumerDataStore();
 
   useEffect(() => {
-    fetchPerfumerData();
-  }, []);
+    fetchPerfumerDetailsData(slug);
+  }, [slug]);
 
   if (loading) {
     return <Loading />;
@@ -25,11 +25,7 @@ function PerfumerDetails() {
     return <Error404 error={error} />;
   }
 
-  const perfumerDetails = perfumerData.find(
-    (designer) => designer.slug === slug
-  );
-
-  if (!perfumerDetails) {
+  if (!perfumerDetailsData) {
     return <PageNotFound />;
   }
 
@@ -38,29 +34,29 @@ function PerfumerDetails() {
       {/* Meta tags for SEO */}
       <Helmet>
         <title>
-          {perfumerDetails.name} | Master Perfumer Profile & Creations
+          {perfumerDetailsData.name} | Master Perfumer Profile & Creations
         </title>
         <meta
           name="description"
-          content={`Learn about ${perfumerDetails.name}, the creative mind behind exceptional fragrances. Discover their creations and contributions.`}
+          content={`Learn about ${perfumerDetailsData.name}, the creative mind behind exceptional fragrances. Discover their creations and contributions.`}
         />
         <meta
           property="og:title"
-          content={`${perfumerDetails.name} | Perfumer Profile`}
+          content={`${perfumerDetailsData.name} | Perfumer Profile`}
         />
         <meta
           property="og:description"
-          content={`Explore the biography, style, and fragrance creations of perfumer ${perfumerDetails.name}.`}
+          content={`Explore the biography, style, and fragrance creations of perfumer ${perfumerDetailsData.name}.`}
         />
         <meta property="og:type" content="profile" />
         <meta
           property="og:url"
-          content={`https://theperfumenotes.com/perfumers/${perfumerDetails.slug}`}
+          content={`https://theperfumenotes.com/perfumers/${perfumerDetailsData.slug}`}
         />
       </Helmet>
 
-      <PerfumerDetailsSection1 perfumerDetails={perfumerDetails} />
-      <PerfumerDetailsSection2 perfumerDetails={perfumerDetails} />
+      <PerfumerDetailsSection1 perfumerDetails={perfumerDetailsData} />
+      <PerfumerDetailsSection2 perfumerDetails={perfumerDetailsData} />
     </div>
   );
 }

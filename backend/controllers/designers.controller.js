@@ -54,7 +54,7 @@ export const addDesigner = async (req, res) => {
 // Get all Designers
 export const getAllDesigners = async (req, res) => {
   try {
-    const designers = await Designer.find();
+    const designers = await Designer.find({}, "name logo slug");
 
     res.status(200).json({
       message: "Designers fetched successfully",
@@ -62,6 +62,26 @@ export const getAllDesigners = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in fetching designers:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get Designer by Slug
+export const getDesignerBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Find designer by slug
+    const designer = await Designer.findOne({ slug });
+    if (!designer) {
+      return res.status(404).json({ message: "Designer not found" });
+    }
+    res.status(200).json({
+      message: "Designer fetched successfully",
+      designer: designer,
+    });
+  } catch (error) {
+    console.error("Error in fetching designer by slug:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

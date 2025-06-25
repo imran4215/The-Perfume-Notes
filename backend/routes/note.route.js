@@ -3,6 +3,7 @@ import {
   addNote,
   deleteNote,
   getAllNotes,
+  getNoteBySlug,
   updateNote,
 } from "../controllers/note.controller.js";
 import upload from "../middlewares/multer.js";
@@ -17,7 +18,11 @@ router.post(
   ]),
   addNote
 );
+
 router.get("/getAllNotes", getAllNotes);
+
+router.get("/getNoteBySlug/:slug", getNoteBySlug);
+
 router.put(
   "/updateNote/:id",
   upload.fields([
@@ -26,6 +31,7 @@ router.put(
   ]),
   updateNote
 );
+
 router.delete("/deleteNote/:id", deleteNote);
 
 export default router;

@@ -10,12 +10,12 @@ import { Helmet } from "react-helmet-async";
 
 export default function DesignersDetails() {
   const { slug } = useParams();
-  const { designerData, fetchDesignerData, loading, error } =
+  const { designerDetailsData, fetchDesignerDetailsData, loading, error } =
     useDesignerDataStore();
 
   useEffect(() => {
-    fetchDesignerData();
-  }, []);
+    fetchDesignerDetailsData(slug);
+  }, [slug]);
 
   if (loading) {
     return <Loading />;
@@ -25,16 +25,12 @@ export default function DesignersDetails() {
     return <Error404 error={error} />;
   }
 
-  const designerDetails = designerData.find(
-    (designer) => designer.slug === slug
-  );
-
-  // If designerDetails is not found, return a message
-  if (!designerDetails) {
+  // If designerDetailsData is not found, return a message
+  if (!designerDetailsData) {
     return <PageNotFound />;
   }
-  const brandSlug = designerDetails.slug;
-  const brandName = designerDetails.name;
+  const brandSlug = designerDetailsData.slug;
+  const brandName = designerDetailsData.name;
 
   return (
     <div>
@@ -57,7 +53,7 @@ export default function DesignersDetails() {
         />
       </Helmet>
 
-      <DesignerDetailsSection1 designerDetails={designerDetails} />
+      <DesignerDetailsSection1 designerDetails={designerDetailsData} />
       <DesignerDetailsSection2 brandSlug={brandSlug} brandName={brandName} />
     </div>
   );

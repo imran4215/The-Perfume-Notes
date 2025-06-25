@@ -73,7 +73,10 @@ export const addNote = async (req, res) => {
 // Get all Notes
 export const getAllNotes = async (req, res) => {
   try {
-    const notes = await Note.find().populate("category", "name");
+    const notes = await Note.find({}, "name profilePic slug").populate(
+      "category",
+      "name"
+    );
 
     res.status(200).json({
       message: "Notes fetched successfully",
@@ -81,6 +84,24 @@ export const getAllNotes = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in fetching Notes:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get Note by slug
+export const getNoteBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Find Note by slug and populate category
+    const note = await Note.findOne({ slug }).populate("category", "name");
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+    res.status(200).json({ message: "Note fetched successfully", note });
+  } catch (error) {
+    console.error("Error in fetching Note by slug:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

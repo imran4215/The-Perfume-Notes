@@ -29,7 +29,7 @@ export default function Body() {
           {blogData.map((blog) => (
             <Link
               to={`/perfume/${blog.slug}`}
-              key={blog._id}
+              key={blog.slug}
               className="group block"
             >
               <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">

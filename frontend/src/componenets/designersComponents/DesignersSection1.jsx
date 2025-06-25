@@ -92,7 +92,7 @@ export default function DesignersSection1() {
             {filteredDesigners.map((designer) => (
               <Link
                 to={`/designers/${designer.slug}`}
-                key={designer._id}
+                key={designer.slug}
                 className="group transition-transform duration-200 hover:-translate-y-1"
               >
                 <div className="bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center h-full border border-gray-100 group-hover:border-amber-100 group-hover:shadow-lg">

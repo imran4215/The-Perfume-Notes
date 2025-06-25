@@ -108,14 +108,16 @@ export const addBlog = async (req, res) => {
 // Get all Blogs
 export const getAllBlogs = async (req, res) => {
   try {
-    const Blogs = await PerfumeBlog.find()
+    const Blogs = await PerfumeBlog.find({}, "title image1 releaseDate slug")
       .populate("brand", "name logo slug")
       .populate("perfumer", "name image slug")
       .populate("notes.top", "name slug profilePic")
       .populate("notes.middle", "name slug profilePic")
       .populate("notes.base", "name slug profilePic")
       .populate("author")
-      .sort({ _id: -1 });
+      .sort({
+        _id: -1,
+      });
 
     res.status(200).json({
       message: "Perfume Blogs fetched successfully",
@@ -123,6 +125,32 @@ export const getAllBlogs = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in fetching perfume Blogs:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get a single Blog by slug
+export const getBlogBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const blog = await PerfumeBlog.findOne({ slug })
+      .populate("brand", "name logo slug")
+      .populate("perfumer", "name image slug")
+      .populate("notes.top", "name slug profilePic")
+      .populate("notes.middle", "name slug profilePic")
+      .populate("notes.base", "name slug profilePic")
+      .populate("author");
+
+    if (!blog) {
+      return res.status(404).json({ message: "Perfume blog not found" });
+    }
+    res.status(200).json({
+      message: "Perfume blog fetched successfully",
+      blog,
+    });
+  } catch (error) {
+    console.error("Error in fetching perfume blog by slug:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
