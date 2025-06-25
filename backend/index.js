@@ -26,6 +26,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://theperfumenotes.com",
   "https://www.theperfumenotes.com",
+  "http://theperfumenotes.com",
+  "http://www.theperfumenotes.com",
 ];
 
 // Middleware
