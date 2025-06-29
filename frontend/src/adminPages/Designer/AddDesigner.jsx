@@ -11,6 +11,8 @@ function AddDesigner() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    metaTitle: "",
+    metaDescription: "",
     logo: null,
   });
   const [previewImage, setPreviewImage] = useState(null);
@@ -50,14 +52,14 @@ function AddDesigner() {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
+      formDataToSend.append("metaTitle", formData.metaTitle);
+      formDataToSend.append("metaDescription", formData.metaDescription);
       if (formData.logo) {
         formDataToSend.append("logo", formData.logo);
       }
 
       await axios.post(`${BASE_URL}/api/designer/addDesigner`, formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       toast.success("Designer added successfully! Redirecting...");
@@ -95,6 +97,7 @@ function AddDesigner() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Designer Name */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Designer Name*
@@ -110,6 +113,7 @@ function AddDesigner() {
               />
             </div>
 
+            {/* Description */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Description*
@@ -123,6 +127,39 @@ function AddDesigner() {
               />
             </div>
 
+            {/* Meta Title */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Title*
+              </label>
+              <input
+                type="text"
+                name="metaTitle"
+                value={formData.metaTitle}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50"
+                placeholder="SEO title for the designer page"
+              />
+            </div>
+
+            {/* Meta Description */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Description*
+              </label>
+              <textarea
+                name="metaDescription"
+                value={formData.metaDescription}
+                onChange={handleChange}
+                required
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50"
+                placeholder="Short SEO description"
+              />
+            </div>
+
+            {/* Logo Upload */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
                 Logo Image
@@ -169,6 +206,7 @@ function AddDesigner() {
               </div>
             </div>
 
+            {/* Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
               <button
                 type="button"

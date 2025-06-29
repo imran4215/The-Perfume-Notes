@@ -36,8 +36,8 @@ function AllDesigners() {
       designer.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (designerId) => {
-    navigate(`/admin/edit-designer/${designerId}`);
+  const handleEdit = (slug) => {
+    navigate(`/admin/edit-designer/${slug}`);
   };
 
   const handleDelete = async (designerId) => {
@@ -160,7 +160,7 @@ function AllDesigners() {
 
                   <div className="flex space-x-2 w-full">
                     <button
-                      onClick={() => handleEdit(designer._id)}
+                      onClick={() => handleEdit(designer.slug)}
                       className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"
                     >
                       <FaEdit /> Edit

@@ -32,30 +32,32 @@ export default function BlogDetails() {
   if (!blogDetails) {
     return <PageNotFound />;
   }
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const brandName = blogDetails.brand?.name || "My Blog";
   const author = blogDetails.author;
   const title = blogDetails.title;
-  const description =
-    blogDetails.description1 || blogDetails.content?.slice(0, 150) + "...";
-  const image =
-    blogDetails.image1.url || "https://yourblog.com/default-image.jpg";
-  const url = `${BASE_URL}/blogs/${blogDetails.slug}`;
 
   return (
     <div>
       {/* Helmet meta tags */}
       <Helmet>
         <title>
-          {title} | {brandName}
+          {blogDetails.metaTitle || title} | {brandName}
         </title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
+        <meta
+          name="description"
+          content={blogDetails.metaDescription || title}
+        />
+        <meta property="og:title" content={blogDetails.metaTitle || title} />
+        <meta
+          property="og:description"
+          content={blogDetails.metaTitle || title}
+        />
         <meta property="og:type" content="article" />
-        <meta property="og:image" content={image} />
-        <meta property="og:url" content={url} />
+        <meta
+          property="og:url"
+          content={`https://theperfumenotes.com/perfume/${blogDetails.slug}`}
+        />
       </Helmet>
 
       {/* Actual Blog Content */}

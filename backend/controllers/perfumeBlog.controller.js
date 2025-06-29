@@ -19,6 +19,10 @@ export const addBlog = async (req, res) => {
       description1,
       description2,
       author,
+      category,
+      metaTitle,
+      metaDescription,
+      slug,
     } = req.body;
 
     const accords = JSON.parse(req.body.accords || "[]");
@@ -34,7 +38,11 @@ export const addBlog = async (req, res) => {
       !accords ||
       !description1 ||
       !description2 ||
-      !author
+      !author ||
+      !category ||
+      !slug ||
+      !metaTitle ||
+      !metaDescription
     ) {
       // Only delete image if uploaded
       if (public_id1) await deleteImage(public_id1);
@@ -43,13 +51,6 @@ export const addBlog = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Create slug from title
-    const slug = slugify(title, {
-      lower: true,
-      strict: true,
-      trim: true,
-    });
-
     // Check for existing blog
     const existing = await PerfumeBlog.findOne({ slug });
     if (existing) {
@@ -57,13 +58,13 @@ export const addBlog = async (req, res) => {
       if (public_id2) await deleteImage(public_id2);
       return res
         .status(409)
-        .json({ message: "A blog with this title already exists." });
+        .json({ message: "A blog with this title or slug already exists." });
     }
 
     // Prepare blog data
     const newBlogData = {
       title,
-      subtitle, // can be undefined
+      subtitle,
       releaseDate,
       brand,
       perfumer,
@@ -72,6 +73,9 @@ export const addBlog = async (req, res) => {
       description1,
       description2,
       author,
+      category,
+      metaTitle,
+      metaDescription,
       slug,
     };
 
@@ -108,7 +112,10 @@ export const addBlog = async (req, res) => {
 // Get all Blogs
 export const getAllBlogs = async (req, res) => {
   try {
-    const Blogs = await PerfumeBlog.find({}, "title image1 releaseDate slug")
+    const Blogs = await PerfumeBlog.find(
+      {},
+      "title image1 releaseDate category slug"
+    )
       .populate("brand", "name logo slug")
       .populate("perfumer", "name image slug")
       .populate("notes.top", "name slug profilePic")
@@ -161,19 +168,18 @@ export const updateBlog = async (req, res) => {
   const uploadedImage2 = req.files?.image2?.[0];
 
   try {
-    const { id } = req.params;
+    const { slug: currentSlug } = req.params;
+    const existingBlog = await PerfumeBlog.findOne({ slug: currentSlug });
 
-    // Fetch current blog
-    const existingBlog = await PerfumeBlog.findById(id);
     if (!existingBlog) {
       if (uploadedImage1) await deleteImage(uploadedImage1.filename);
       if (uploadedImage2) await deleteImage(uploadedImage2.filename);
       return res.status(404).json({ message: "Perfume blog not found" });
     }
 
-    const updatedFields = { ...existingBlog._doc };
+    const updatedFields = {};
 
-    [
+    const editable = [
       "title",
       "subtitle",
       "releaseDate",
@@ -182,42 +188,48 @@ export const updateBlog = async (req, res) => {
       "description1",
       "description2",
       "author",
-    ].forEach((field) => {
-      if (req.body[field] !== undefined && req.body[field] !== "")
-        updatedFields[field] = req.body[field];
+      "category",
+      "metaTitle",
+      "metaDescription",
+    ];
+
+    editable.forEach((key) => {
+      if (req.body[key] !== undefined && req.body[key] !== "")
+        updatedFields[key] = req.body[key];
     });
 
-    if (req.body.accords) {
+    /* Accords & notes come as JSON strings */
+    if (req.body.accords !== undefined) {
       try {
         updatedFields.accords = JSON.parse(req.body.accords);
-      } catch {}
+      } catch {
+        return res.status(400).json({ message: "Invalid accords JSON" });
+      }
     }
-    if (req.body.notes) {
+    if (req.body.notes !== undefined) {
       try {
         updatedFields.notes = JSON.parse(req.body.notes);
-      } catch {}
+      } catch {
+        return res.status(400).json({ message: "Invalid notes JSON" });
+      }
     }
 
-    if (
-      req.body.title &&
-      req.body.title.trim() !== "" &&
-      req.body.title !== existingBlog.title
-    ) {
-      const newSlug = slugify(req.body.title, { lower: true, strict: true });
+    if (req.body.slug && req.body.slug !== existingBlog.slug) {
       const slugConflict = await PerfumeBlog.findOne({
-        slug: newSlug,
-        _id: { $ne: id },
+        slug: req.body.slug,
+        _id: { $ne: existingBlog._id },
       });
       if (slugConflict) {
         if (uploadedImage1) await deleteImage(uploadedImage1.filename);
         if (uploadedImage2) await deleteImage(uploadedImage2.filename);
         return res
-          .status(400)
-          .json({ message: "Another blog with this title already exists" });
+          .status(409)
+          .json({ message: "Another blog with this slug already exists" });
       }
-      updatedFields.slug = newSlug;
+      updatedFields.slug = req.body.slug;
     }
 
+    /* ── Replace images if new ones sent ───────────────── */
     if (uploadedImage1) {
       if (existingBlog.image1?.public_id)
         await cloudinary.uploader.destroy(existingBlog.image1.public_id);
@@ -236,19 +248,21 @@ export const updateBlog = async (req, res) => {
       };
     }
 
-    const updatedBlog = await PerfumeBlog.findByIdAndUpdate(id, updatedFields, {
-      new: true,
-    });
+    const updatedBlog = await PerfumeBlog.findByIdAndUpdate(
+      existingBlog._id,
+      { $set: updatedFields },
+      { new: true }
+    );
 
     return res.status(200).json({
-      message: "Perfume Blog updated successfully",
+      message: "Perfume blog updated successfully",
       updatedBlog,
     });
   } catch (error) {
     if (uploadedImage1) await deleteImage(uploadedImage1.filename);
     if (uploadedImage2) await deleteImage(uploadedImage2.filename);
-    console.error("Error updating perfume Blog:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error updating perfume blog:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

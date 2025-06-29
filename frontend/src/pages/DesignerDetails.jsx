@@ -36,15 +36,21 @@ export default function DesignersDetails() {
     <div>
       {/* Meta tags for SEO */}
       <Helmet>
-        <title>{brandName} | Designer Details</title>
+        <title>{designerDetailsData.metaTitle || brandName}</title>
         <meta
           name="description"
-          content={`Explore details about designer ${brandName}, including their background and creations.`}
+          content={
+            designerDetailsData.metaDescription ||
+            `Discover the story and works of ${brandName}.`
+          }
         />
-        <meta property="og:title" content={`${brandName} | Designer Details`} />
+        <meta
+          property="og:title"
+          content={`${designerDetailsData.metaTitle || brandName}`}
+        />
         <meta
           property="og:description"
-          content={`Discover the story and works of ${brandName}.`}
+          content={`${designerDetailsData.metaDescription || brandName}.`}
         />
         <meta property="og:type" content="profile" />
         <meta
@@ -53,8 +59,12 @@ export default function DesignersDetails() {
         />
       </Helmet>
 
+      <DesignerDetailsSection2
+        brandSlug={brandSlug}
+        brandName={brandName}
+        designerDetails={designerDetailsData}
+      />
       <DesignerDetailsSection1 designerDetails={designerDetailsData} />
-      <DesignerDetailsSection2 brandSlug={brandSlug} brandName={brandName} />
     </div>
   );
 }

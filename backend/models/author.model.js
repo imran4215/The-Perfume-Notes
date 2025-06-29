@@ -17,6 +17,14 @@ const authorSchema = new mongoose.Schema(
       url: String,
       public_id: String,
     },
+    metaTitle: {
+      type: String,
+      required: true,
+    },
+    metaDescription: {
+      type: String,
+      required: true,
+    },
     slug: {
       type: String,
       required: true,

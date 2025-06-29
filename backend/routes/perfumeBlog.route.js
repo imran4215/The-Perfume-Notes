@@ -24,7 +24,7 @@ router.get("/getAllBlogs", getAllBlogs);
 router.get("/getBlogBySlug/:slug", getBlogBySlug);
 
 router.put(
-  "/updateBlog/:id",
+  "/updateBlog/:slug",
   upload.fields([
     { name: "image1", maxCount: 1 },
     { name: "image2", maxCount: 1 },

@@ -44,20 +44,19 @@ function AuthorDetails() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       {/* Meta tags for SEO */}
       <Helmet>
-        <title>{authorName} - Author at The Perfume Notes</title>
+        <title>{author.metaTitle || authorName}</title>
         <meta
           name="description"
-          content={`Explore articles written by ${authorName}, a contributor at The Perfume Notes.`}
+          content={author.metaDescription || authorBio}
         />
-        <meta property="og:title" content={`${authorName} - Author`} />
+        <meta property="og:title" content={`${author.metaTitle}`} />
         <meta
           property="og:description"
-          content={`Discover the fragrance stories and blogs written by ${authorName}.`}
+          content={author.metaDescription || authorBio}
         />
-        <meta property="og:type" content="profile" />
         <meta
           property="og:url"
-          content={`https://theperfumenotes.com/author/${slug}`}
+          content={`https://theperfumenotes.com/author/${author.slug}`}
         />
       </Helmet>
 

@@ -93,19 +93,25 @@ export default function App() {
             <Route path="/admin/edit-author/:id" element={<EditAuthor />} />
             <Route path="/admin/add-designer" element={<AddDesigner />} />
             <Route path="/admin/all-designers" element={<AllDesigners />} />
-            <Route path="/admin/edit-designer/:id" element={<EditDesigner />} />
+            <Route
+              path="/admin/edit-designer/:slug"
+              element={<EditDesigner />}
+            />
             <Route path="/admin/add-category" element={<AddCategory />} />
             <Route path="/admin/all-categories" element={<AllCategories />} />
             <Route path="/admin/edit-category/:id" element={<EditCategory />} />
             <Route path="/admin/add-perfumer" element={<AddPerfumer />} />
             <Route path="/admin/all-perfumers" element={<AllPerfumers />} />
-            <Route path="/admin/edit-perfumer/:id" element={<EditPerfumer />} />
+            <Route
+              path="/admin/edit-perfumer/:id/:slug"
+              element={<EditPerfumer />}
+            />
             <Route path="/admin/add-note" element={<AddNote />} />
             <Route path="/admin/all-notes" element={<AllNotes />} />
-            <Route path="/admin/edit-note/:id" element={<EditNote />} />
+            <Route path="/admin/edit-note/:id/:slug" element={<EditNote />} />
             <Route path="/admin/add-blog" element={<AddBlog />} />
             <Route path="/admin/all-blogs" element={<AllBlogs />} />
-            <Route path="/admin/edit-blog/:id" element={<EditBlog />} />
+            <Route path="/admin/edit-blog/:slug" element={<EditBlog />} />
           </Route>
 
           <Route path="/admin/login" element={<Login />} />

@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const useDesignerDataStore = create((set) => ({
   designerData: [],
-  designerDetails: null,
+  designerDetailsData: null,
   loading: false,
   error: null,
 

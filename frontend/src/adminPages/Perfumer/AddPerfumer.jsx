@@ -7,28 +7,36 @@ import { useNavigate } from "react-router-dom";
 function AddPerfumer() {
   const editor = useRef(null);
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [title, setTitle] = useState(""); // optional
   const [intro, setIntro] = useState(""); // optional
   const [bio, setBio] = useState("");
+  const [metaTitle, setMetaTitle] = useState(""); // NEW required
+  const [metaDescription, setMetaDescription] = useState(""); // NEW required
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Only name, bio, and image are required now
-    if (!name || !bio || !image) {
-      toast.error("Name, biography, and profile image are required");
+    // Validate required fields including metaTitle and metaDescription
+    if (!name || !bio || !image || !metaTitle || !metaDescription) {
+      toast.error(
+        "Name, biography, profile image, meta title, and meta description are required"
+      );
       return;
     }
 
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("title", title); // can be empty string
-    formData.append("intro", intro); // can be empty string
+    formData.append("title", title);
+    formData.append("intro", intro);
     formData.append("bio", bio);
+    formData.append("metaTitle", metaTitle);
+    formData.append("metaDescription", metaDescription);
     formData.append("image", image);
 
     setLoading(true);
@@ -45,6 +53,8 @@ function AddPerfumer() {
       setTitle("");
       setIntro("");
       setBio("");
+      setMetaTitle("");
+      setMetaDescription("");
       setImage(null);
     } catch (err) {
       console.error(err);
@@ -62,6 +72,7 @@ function AddPerfumer() {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Name */}
           <div>
             <label
               htmlFor="name"
@@ -81,12 +92,13 @@ function AddPerfumer() {
             />
           </div>
 
+          {/* Title (optional) */}
           <div>
             <label
               htmlFor="title"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Title {/* optional, no red asterisk */}
+              Title
             </label>
             <input
               id="title"
@@ -99,12 +111,13 @@ function AddPerfumer() {
             />
           </div>
 
+          {/* Introduction (optional) */}
           <div>
             <label
               htmlFor="intro"
               className="block text-gray-700 font-semibold mb-2"
             >
-              Introduction {/* optional, no red asterisk */}
+              Introduction
             </label>
             <textarea
               id="intro"
@@ -117,6 +130,7 @@ function AddPerfumer() {
             />
           </div>
 
+          {/* Biography */}
           <div>
             <label
               htmlFor="bio"
@@ -128,11 +142,52 @@ function AddPerfumer() {
               ref={editor}
               value={bio}
               onChange={(newContent) => setBio(newContent)}
-              tabIndex={1} // To manage focus properly
+              tabIndex={1}
               disabled={loading}
             />
           </div>
 
+          {/* Meta Title */}
+          <div>
+            <label
+              htmlFor="metaTitle"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Meta Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="metaTitle"
+              type="text"
+              value={metaTitle}
+              onChange={(e) => setMetaTitle(e.target.value)}
+              placeholder="Enter SEO meta title"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          {/* Meta Description */}
+          <div>
+            <label
+              htmlFor="metaDescription"
+              className="block text-gray-700 font-semibold mb-2"
+            >
+              Meta Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="metaDescription"
+              rows="3"
+              value={metaDescription}
+              onChange={(e) => setMetaDescription(e.target.value)}
+              placeholder="Enter SEO meta description"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          {/* Profile Image */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
               Profile Image <span className="text-red-500">*</span>
@@ -173,6 +228,7 @@ function AddPerfumer() {
             </div>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}

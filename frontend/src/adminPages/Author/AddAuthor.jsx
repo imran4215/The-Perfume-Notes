@@ -11,6 +11,8 @@ function AddAuthor() {
     title: "",
     bio: "",
     authorPic: null,
+    metaTitle: "",
+    metaDescription: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +52,9 @@ function AddAuthor() {
       formDataToSend.append("name", formData.name);
       formDataToSend.append("title", formData.title);
       formDataToSend.append("bio", formData.bio);
+      formDataToSend.append("metaTitle", formData.metaTitle);
+      formDataToSend.append("metaDescription", formData.metaDescription);
+
       if (formData.authorPic) {
         formDataToSend.append("authorPic", formData.authorPic);
       }
@@ -61,7 +66,6 @@ function AddAuthor() {
       });
 
       toast.success("Author added successfully! Redirecting...");
-
       setTimeout(() => {
         navigate("/admin/all-authors");
       }, 2000);
@@ -120,7 +124,6 @@ function AddAuthor() {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  // title is now optional, no required attribute
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Bestselling Author"
                 />
@@ -140,6 +143,38 @@ function AddAuthor() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Tell us about this author..."
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Meta Title*
+                </label>
+                <input
+                  type="text"
+                  name="metaTitle"
+                  value={formData.metaTitle}
+                  onChange={handleChange}
+                  required
+                  placeholder="SEO title for this author page"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Meta Description*
+                </label>
+                <input
+                  type="text"
+                  name="metaDescription"
+                  value={formData.metaDescription}
+                  onChange={handleChange}
+                  required
+                  placeholder="Short SEO description"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
             </div>
 
             <div className="space-y-4">

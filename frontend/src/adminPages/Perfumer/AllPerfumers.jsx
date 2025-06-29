@@ -36,8 +36,8 @@ function AllPerfumers() {
       perfumer.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (id) => {
-    navigate(`/admin/edit-perfumer/${id}`);
+  const handleEdit = (id, slug) => {
+    navigate(`/admin/edit-perfumer/${id}/${slug}`);
   };
 
   const handleDelete = async (id) => {
@@ -152,7 +152,7 @@ function AllPerfumers() {
 
                   <div className="flex space-x-2 w-full">
                     <button
-                      onClick={() => handleEdit(perfumer._id)}
+                      onClick={() => handleEdit(perfumer._id, perfumer.slug)}
                       className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"
                     >
                       <FaEdit /> Edit

@@ -18,8 +18,8 @@ export default function AllBlogs() {
     fetchBlogData();
   }, []);
 
-  const handleEdit = (blogId) => {
-    navigate(`/admin/edit-blog/${blogId}`);
+  const handleEdit = (slug) => {
+    navigate(`/admin/edit-blog/${slug}`);
   };
 
   const handleDelete = async (blogId) => {
@@ -82,7 +82,7 @@ export default function AllBlogs() {
               key={blog._id}
               className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
             >
-              <Link to={`/blogs/${blog.slug}`} className="group">
+              <Link to={`/perfume/${blog.slug}`} className="group">
                 <div className="relative aspect-square overflow-hidden">
                   <img
                     src={blog.image1.url}
@@ -99,7 +99,7 @@ export default function AllBlogs() {
 
               <div className="px-2 pb-2 flex justify-between gap-2 mt-auto">
                 <button
-                  onClick={() => handleEdit(blog._id)}
+                  onClick={() => handleEdit(blog.slug)}
                   className="flex-1 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition"
                 >
                   Edit

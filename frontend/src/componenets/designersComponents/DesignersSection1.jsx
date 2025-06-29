@@ -1,31 +1,50 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useDesignerDataStore from "../../store/DesignerDataStore";
 import Loading from "../Loading";
 import Error404 from "../Error404";
+import { debounce } from "lodash";
 
 export default function DesignersSection1() {
   const { designerData, loading, error, fetchDesignerData } =
     useDesignerDataStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredDesigners, setFilteredDesigners] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const designersPerPage = 20; // Adjust based on your needs
 
   useEffect(() => {
     fetchDesignerData();
   }, []);
 
-  useEffect(() => {
-    if (designerData && designerData.length > 0) {
-      if (searchTerm.trim() === "") {
-        setFilteredDesigners(designerData);
+  const filterDesigners = useCallback(
+    debounce((term, data) => {
+      if (term.trim() === "") {
+        setFilteredDesigners(data);
       } else {
-        const filtered = designerData.filter((designer) =>
-          designer.name.toLowerCase().includes(searchTerm.toLowerCase())
+        const filtered = data.filter((designer) =>
+          designer.name.toLowerCase().includes(term.toLowerCase())
         );
         setFilteredDesigners(filtered);
       }
+      setCurrentPage(1); // Reset to first page when filtering
+    }, 300),
+    []
+  );
+
+  useEffect(() => {
+    if (designerData && designerData.length > 0) {
+      filterDesigners(searchTerm, designerData);
     }
-  }, [searchTerm, designerData]);
+    return () => filterDesigners.cancel();
+  }, [searchTerm, designerData, filterDesigners]);
+
+  const paginatedDesigners = filteredDesigners.slice(
+    (currentPage - 1) * designersPerPage,
+    currentPage * designersPerPage
+  );
+
+  const totalPages = Math.ceil(filteredDesigners.length / designersPerPage);
 
   if (loading) {
     return <Loading />;
@@ -87,31 +106,58 @@ export default function DesignersSection1() {
         </div>
 
         {/* Designers Grid */}
-        {filteredDesigners.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-            {filteredDesigners.map((designer) => (
-              <Link
-                to={`/designers/${designer.slug}`}
-                key={designer.slug}
-                className="group transition-transform duration-200 hover:-translate-y-1"
-              >
-                <div className="bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center h-full border border-gray-100 group-hover:border-amber-100 group-hover:shadow-lg">
-                  <div className="w-28 h-28 sm:w-40 sm:h-40 mb-4 sm:mb-6 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-3 sm:p-4 transition-transform duration-300 group-hover:scale-105">
-                    <img
-                      src={designer.logo.url}
-                      alt={designer.name}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                    />
+        {paginatedDesigners.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+              {paginatedDesigners.map((designer) => (
+                <Link
+                  to={`/designers/${designer.slug}`}
+                  key={designer.slug}
+                  className="group transition-transform duration-200 hover:-translate-y-1"
+                >
+                  <div className="bg-white rounded-xl p-4 sm:p-6 flex flex-col items-center h-full border border-gray-100 group-hover:border-amber-100 group-hover:shadow-lg">
+                    <div className="w-28 h-28 sm:w-40 sm:h-40 mb-4 sm:mb-6 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-3 sm:p-4 transition-transform duration-300 group-hover:scale-105">
+                      <img
+                        src={designer.logo.url}
+                        alt={designer.name}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-medium text-gray-900 text-center">
+                      {designer.name}
+                    </h3>
+                    <div className="mt-2 w-8 h-0.5 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-medium text-gray-900 text-center">
-                    {designer.name}
-                  </h3>
-                  <div className="mt-2 w-8 h-0.5 bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">

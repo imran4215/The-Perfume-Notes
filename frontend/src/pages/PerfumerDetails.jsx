@@ -34,19 +34,25 @@ function PerfumerDetails() {
       {/* Meta tags for SEO */}
       <Helmet>
         <title>
-          {perfumerDetailsData.name} | Master Perfumer Profile & Creations
+          {perfumerDetailsData.metaTitle || perfumerDetailsData.name}
         </title>
         <meta
           name="description"
-          content={`Learn about ${perfumerDetailsData.name}, the creative mind behind exceptional fragrances. Discover their creations and contributions.`}
+          content={`${
+            perfumerDetailsData.metaDescription || perfumerDetailsData.name
+          }`}
         />
         <meta
           property="og:title"
-          content={`${perfumerDetailsData.name} | Perfumer Profile`}
+          content={`${
+            perfumerDetailsData.metaTitle || perfumerDetailsData.name
+          }`}
         />
         <meta
           property="og:description"
-          content={`Explore the biography, style, and fragrance creations of perfumer ${perfumerDetailsData.name}.`}
+          content={`${
+            perfumerDetailsData.metaDescription || perfumerDetailsData.name
+          }.`}
         />
         <meta property="og:type" content="profile" />
         <meta

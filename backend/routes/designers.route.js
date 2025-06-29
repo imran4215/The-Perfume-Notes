@@ -21,7 +21,7 @@ router.get("/getAllDesigners", getAllDesigners);
 router.get("/getDesignerBySlug/:slug", getDesignerBySlug);
 
 router.put(
-  "/updateDesigner/:id",
+  "/updateDesigner/:slug",
   upload.fields([{ name: "logo", maxCount: 1 }]),
   updateDesigner
 );

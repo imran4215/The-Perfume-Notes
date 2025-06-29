@@ -1,28 +1,34 @@
+// src/pages/admin/EditAuthor.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import useAdminDataStore from "../../store/AdminDataStore";
 
 function EditAuthor() {
-  const { id } = useParams();
-  const { authors } = useAdminDataStore();
-
-  const author = authors.find((author) => author._id === id);
+  /* ────────── ROUTE + GLOBAL STORE ────────── */
+  const { id } = useParams(); // /edit-author/:id
+  const { authors } = useAdminDataStore(); // list already fetched elsewhere
+  const author = authors.find((a) => a._id === id);
   const navigate = useNavigate();
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+  /* ────────── LOCAL STATE ────────── */
   const [formData, setFormData] = useState({
     name: "",
     title: "",
     bio: "",
     authorPic: null,
+    metaTitle: "",
+    metaDescription: "",
   });
   const [previewImage, setPreviewImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+  /* ────────── POPULATE WHEN AUTHOR ARRIVES ────────── */
   useEffect(() => {
     if (author) {
       setFormData({
@@ -30,6 +36,8 @@ function EditAuthor() {
         title: author.title || "",
         bio: author.bio || "",
         authorPic: null,
+        metaTitle: author.metaTitle || "",
+        metaDescription: author.metaDescription || "",
       });
       setPreviewImage(author.authorPic?.url || null);
     } else {
@@ -38,73 +46,60 @@ function EditAuthor() {
     }
   }, [author, navigate]);
 
+  /* ────────── INPUT HANDLERS ────────── */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        authorPic: file,
-      }));
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    setFormData((prev) => ({ ...prev, authorPic: file }));
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewImage(reader.result);
+    reader.readAsDataURL(file);
   };
 
+  /* ────────── SUBMIT ────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      // Title is optional, so send empty string if not provided
-      formDataToSend.append("title", formData.title || "");
-      formDataToSend.append("bio", formData.bio);
-      if (formData.authorPic) {
-        formDataToSend.append("authorPic", formData.authorPic);
-      }
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("title", formData.title);
+      data.append("bio", formData.bio);
+      data.append("metaTitle", formData.metaTitle);
+      data.append("metaDescription", formData.metaDescription);
+      if (formData.authorPic) data.append("authorPic", formData.authorPic);
 
-      await axios.put(
-        `${BASE_URL}/api/author/updateAuthor/${id}`,
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axios.put(`${BASE_URL}/api/author/updateAuthor/${id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       toast.success("Author updated successfully! Redirecting...");
-
-      setTimeout(() => {
-        navigate("/admin/all-authors");
-      }, 2000);
+      setTimeout(() => navigate("/admin/all-authors"), 1500);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update author.");
+      toast.error(err.response?.data?.message || "Failed to update author.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  /* ────────── RENDER ────────── */
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <ToastContainer />
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6 transition-colors"
+          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6"
         >
           <FaArrowLeft /> Back to Authors
         </button>
@@ -113,55 +108,59 @@ function EditAuthor() {
           <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 py-5 px-6">
             <h1 className="text-2xl font-bold text-white">Edit Author</h1>
             <p className="text-indigo-100 mt-1">
-              Modify the details below to update this author's profile
+              Modify the details below to update this author&#39;s profile
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* ───── Name + Title ───── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Author Name*
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Title {/* removed * to indicate optional */}
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  // Removed required so it is optional
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Bio*
-              </label>
-              <textarea
-                name="bio"
-                value={formData.bio}
+              <Input
+                label="Author Name*"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 required
-                rows={5}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <Input
+                label="Title (optional)"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
               />
             </div>
 
+            {/* ───── Bio ───── */}
+            <Textarea
+              label="Bio*"
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              required
+              rows={5}
+            />
+
+            {/* ───── Meta fields ───── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="Meta Title*"
+                name="metaTitle"
+                value={formData.metaTitle}
+                onChange={handleChange}
+                required
+                placeholder="SEO title for this author page"
+              />
+              <Input
+                label="Meta Description*"
+                name="metaDescription"
+                value={formData.metaDescription}
+                onChange={handleChange}
+                required
+                placeholder="Short SEO description"
+              />
+            </div>
+
+            {/* ───── Image upload ───── */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
                 Author Picture
@@ -176,18 +175,17 @@ function EditAuthor() {
                         or drag and drop
                       </p>
                       <p className="text-xs text-gray-500">
-                        PNG, JPG (Max 5MB)
+                        PNG, JPG (Max 5 MB)
                       </p>
                     </div>
                     <input
                       type="file"
-                      className="hidden"
                       accept="image/*"
+                      className="hidden"
                       onChange={handleImageChange}
                     />
                   </label>
                 </div>
-
                 {previewImage && (
                   <div className="flex flex-col items-center">
                     <img
@@ -201,11 +199,13 @@ function EditAuthor() {
               </div>
             </div>
 
+            {/* ───── Buttons ───── */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="px-5 py-2.5 border rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                disabled={isLoading}
               >
                 Cancel
               </button>
@@ -216,11 +216,11 @@ function EditAuthor() {
                   isLoading
                     ? "bg-indigo-400"
                     : "bg-indigo-600 hover:bg-indigo-700"
-                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+                }`}
               >
                 {isLoading ? (
                   <>
-                    <FaSpinner className="animate-spin" /> Saving...
+                    <FaSpinner className="animate-spin" /> Saving…
                   </>
                 ) : (
                   "Update Author"
@@ -233,5 +233,27 @@ function EditAuthor() {
     </div>
   );
 }
+
+/* ---------- Small Presentational Inputs ---------- */
+const Input = ({ label, ...rest }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <input
+      {...rest}
+      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+  </div>
+);
+
+const Textarea = ({ label, rows = 3, ...rest }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <textarea
+      rows={rows}
+      {...rest}
+      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+  </div>
+);
 
 export default EditAuthor;

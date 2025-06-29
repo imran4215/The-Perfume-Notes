@@ -17,9 +17,13 @@ function AddBlog() {
     fetchPerfumerData,
     fetchNoteData,
   } = useAdminDataStore();
+
   const navigate = useNavigate();
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+  /* ───────────────────────────────────────────────
+     INITIAL DATA FETCH
+  ─────────────────────────────────────────────── */
   useEffect(() => {
     fetchAuthorData();
     fetchDesignerData();
@@ -27,15 +31,22 @@ function AddBlog() {
     fetchNoteData();
   }, []);
 
+  /* ───────────────────────────────────────────────
+     STATE
+  ─────────────────────────────────────────────── */
   const [formData, setFormData] = useState({
     title: "",
     subtitle: "",
+    slug: "",
     releaseDate: "",
     brand: "",
     perfumer: "",
+    category: "", // men | women | unisex
     description1: "",
     description2: "",
     author: "",
+    metaTitle: "",
+    metaDescription: "",
   });
 
   const [selectedNotes, setSelectedNotes] = useState({
@@ -60,6 +71,9 @@ function AddBlog() {
 
   const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
 
+  /* ───────────────────────────────────────────────
+     HANDLERS
+  ─────────────────────────────────────────────── */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -75,29 +89,22 @@ function AddBlog() {
   };
 
   const handleSearchChange = (noteType, value) => {
-    setSearchTerms((prev) => ({
-      ...prev,
-      [noteType]: value.toLowerCase(),
-    }));
+    setSearchTerms((prev) => ({ ...prev, [noteType]: value.toLowerCase() }));
   };
 
   const filteredNotes = (noteType) => {
     if (!notes) return [];
-
-    // Sort notes alphabetically by name
     const sortedNotes = [...notes].sort((a, b) => a.name.localeCompare(b.name));
-
     if (!searchTerms[noteType]) return sortedNotes;
-
     return sortedNotes.filter((note) =>
       note.name.toLowerCase().includes(searchTerms[noteType])
     );
   };
 
   const handleAccordChange = (index, field, value) => {
-    const updatedAccords = [...accords];
-    updatedAccords[index][field] = value;
-    setAccords(updatedAccords);
+    const updated = [...accords];
+    updated[index][field] = value;
+    setAccords(updated);
   };
 
   const handleAddAccord = () => {
@@ -113,86 +120,80 @@ function AddBlog() {
   const handleImageChange = (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const newImages = [...images];
     const newPreviews = [...imagePreviews];
-
     newImages[index] = file;
     newPreviews[index] = URL.createObjectURL(file);
-
     setImages(newImages);
     setImagePreviews(newPreviews);
   };
 
+  /* ───────────────────────────────────────────────
+     VALIDATION
+  ─────────────────────────────────────────────── */
   const validateForm = () => {
-    if (
-      !formData.title ||
-      !formData.releaseDate ||
-      !formData.brand ||
-      !formData.perfumer ||
-      !formData.description1 ||
-      !formData.author
-    ) {
+    const required = [
+      "title",
+      "slug",
+      "releaseDate",
+      "brand",
+      "perfumer",
+      "category",
+      "description1",
+      "description2",
+      "author",
+      "metaTitle",
+      "metaDescription",
+    ];
+    const missing = required.find((field) => !formData[field]);
+    if (missing) {
       toast.error("Please fill all required fields");
       return false;
     }
-
     return true;
   };
 
+  /* ───────────────────────────────────────────────
+     SUBMIT
+  ─────────────────────────────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setIsSubmitting(true);
 
     try {
       const data = new FormData();
-
-      // Append all form fields
-      for (const [key, value] of Object.entries(formData)) {
-        data.append(key, value);
-      }
-
-      // Append notes and accords
+      Object.entries(formData).forEach(([key, value]) =>
+        data.append(key, value)
+      );
       data.append("notes", JSON.stringify(selectedNotes));
       data.append("accords", JSON.stringify(accords));
+      images.forEach((img, idx) => img && data.append(`image${idx + 1}`, img));
 
-      // Append images
-      images.forEach((image, index) => {
-        if (image) {
-          data.append(`image${index + 1}`, image);
-        }
+      await axios.post(`${BASE_URL}/api/perfumeBlog/addBlog`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      const response = await axios.post(
-        `${BASE_URL}/api/perfumeBlog/addBlog`,
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
 
       toast.success("Blog added successfully!");
       navigate("/admin/all-blogs");
-    } catch (error) {
-      console.error("Error submitting blog:", error);
-      toast.error(error.response?.data?.message || "Failed to add blog");
+    } catch (err) {
+      console.error("Error submitting blog:", err);
+      toast.error(err.response?.data?.message || "Failed to add blog");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* ───────────────────────────────────────────────
+     UI
+  ─────────────────────────────────────────────── */
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-14">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Add New Blog</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title & Subtitle */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Title, Subtitle, Slug */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Title*
@@ -203,10 +204,11 @@ function AddBlog() {
               value={formData.title}
               onChange={handleChange}
               placeholder="Blog title"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Subtitle
@@ -217,13 +219,28 @@ function AddBlog() {
               value={formData.subtitle}
               onChange={handleChange}
               placeholder="Blog subtitle"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Slug* (unique URL)
+            </label>
+            <input
+              type="text"
+              name="slug"
+              value={formData.slug}
+              onChange={handleChange}
+              placeholder="e.g. sauvage-dior-review"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              required
             />
           </div>
         </div>
 
         {/* Release Year, Brand, Perfumer */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Release Year*
@@ -232,7 +249,7 @@ function AddBlog() {
               name="releaseDate"
               value={formData.releaseDate}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
             >
               <option value="">Select Year</option>
@@ -252,7 +269,7 @@ function AddBlog() {
               name="brand"
               value={formData.brand}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
             >
               <option value="">Select Brand</option>
@@ -272,7 +289,7 @@ function AddBlog() {
               name="perfumer"
               value={formData.perfumer}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               required
             >
               <option value="">Select Perfumer</option>
@@ -281,6 +298,25 @@ function AddBlog() {
                   {p.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category*
+            </label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              required
+            >
+              <option value="">Select Category</option>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+              <option value="unisex">Unisex</option>
             </select>
           </div>
         </div>
@@ -504,7 +540,39 @@ function AddBlog() {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Meta Title & Meta Description */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Meta Title* (SEO)
+            </label>
+            <input
+              type="text"
+              name="metaTitle"
+              value={formData.metaTitle}
+              onChange={handleChange}
+              placeholder="Max ~60 characters"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Meta Description* (SEO)
+            </label>
+            <textarea
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleChange}
+              rows="3"
+              placeholder="A concise summary for search engines (max ~160 characters)"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        {/* Submit */}
         <div className="pt-4">
           <button
             type="submit"

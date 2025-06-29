@@ -4,21 +4,26 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import useAdminDataStore from "../../store/AdminDataStore";
 import JoditEditor from "jodit-react";
+import useDesignerDataStore from "../../store/DesignerDataStore";
+import Loading from "../../componenets/Loading";
+import Error404 from "../../componenets/Error404";
+import PageNotFound from "../../pages/PageNotFound";
 
 function EditDesigner() {
-  const { id } = useParams();
-  const { designers } = useAdminDataStore();
-  const editor = useRef(null);
+  const { slug } = useParams();
+  const { designerDetailsData, fetchDesignerDetailsData, loading, error } =
+    useDesignerDataStore();
 
-  const designer = designers.find((designer) => designer._id === id);
+  const editor = useRef(null);
   const navigate = useNavigate();
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    metaTitle: "",
+    metaDescription: "",
     logo: null,
   });
 
@@ -26,18 +31,25 @@ function EditDesigner() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (designer) {
+    fetchDesignerDetailsData(slug);
+  }, [slug]);
+
+  useEffect(() => {
+    if (designerDetailsData) {
       setFormData({
-        name: designer.name || "",
-        description: designer.description || "",
+        name: designerDetailsData.name || "",
+        description: designerDetailsData.description || "",
+        metaTitle: designerDetailsData.metaTitle || "",
+        metaDescription: designerDetailsData.metaDescription || "",
         logo: null,
       });
-      setPreviewImage(designer.logo?.url || null);
-    } else {
-      toast.error("Designer not found.");
-      navigate("/admin/all-designers");
+      setPreviewImage(designerDetailsData.logo?.url || null);
     }
-  }, [designer, navigate]);
+  }, [designerDetailsData]);
+
+  if (loading) return <Loading />;
+  if (error) return <Error404 error={error} />;
+  if (!designerDetailsData) return <PageNotFound />;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,15 +62,9 @@ function EditDesigner() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        logo: file,
-      }));
-
+      setFormData((prev) => ({ ...prev, logo: file }));
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
+      reader.onloadend = () => setPreviewImage(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -71,24 +77,18 @@ function EditDesigner() {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
-      if (formData.logo) {
-        formDataToSend.append("logo", formData.logo);
-      }
+      formDataToSend.append("metaTitle", formData.metaTitle);
+      formDataToSend.append("metaDescription", formData.metaDescription);
+      if (formData.logo) formDataToSend.append("logo", formData.logo);
 
       await axios.put(
-        `${BASE_URL}/api/designer/updateDesigner/${id}`,
+        `${BASE_URL}/api/designer/updateDesigner/${slug}`,
         formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       toast.success("Designer updated successfully! Redirecting...");
-      setTimeout(() => {
-        navigate("/admin/all-designers");
-      }, 2000);
+      setTimeout(() => navigate("/admin/all-designers"), 2000);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update designer.", {
         position: "top-right",
@@ -119,108 +119,131 @@ function EditDesigner() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            <div className="space-y-6">
-              {/* Name */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Designer Name*
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
+            {/* Name */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Designer Name*
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Description*
-                </label>
-                <JoditEditor
-                  ref={editor}
-                  value={formData.description}
-                  onChange={(newContent) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      description: newContent,
-                    }))
-                  }
-                />
-              </div>
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Description*
+              </label>
+              <JoditEditor
+                ref={editor}
+                value={formData.description}
+                onChange={(newContent) =>
+                  setFormData((prev) => ({ ...prev, description: newContent }))
+                }
+              />
+            </div>
 
-              {/* Logo Upload */}
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Logo
-                </label>
-                <div className="flex flex-col md:flex-row gap-6 items-start">
-                  <div className="flex-1">
-                    <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <FaUpload className="text-gray-400 text-3xl mb-2" />
-                        <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Click to upload</span>{" "}
-                          or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          PNG, JPG (Max 5MB)
-                        </p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                      />
-                    </label>
-                  </div>
+            {/* Meta Title */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Title*
+              </label>
+              <input
+                type="text"
+                name="metaTitle"
+                value={formData.metaTitle}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
 
-                  {previewImage && (
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="w-32 h-32 object-contain rounded-full border-4 border-white shadow-md bg-white"
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        Image Preview
+            {/* Meta Description */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Description*
+              </label>
+              <textarea
+                name="metaDescription"
+                value={formData.metaDescription}
+                onChange={handleChange}
+                required
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Logo Upload */}
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Logo
+              </label>
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-1">
+                  <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <FaUpload className="text-gray-400 text-3xl mb-2" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span>{" "}
+                        or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG (Max 5MB)
                       </p>
                     </div>
-                  )}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </label>
                 </div>
-              </div>
 
-              {/* Buttons */}
-              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white flex items-center gap-2 ${
-                    isLoading
-                      ? "bg-indigo-400"
-                      : "bg-indigo-600 hover:bg-indigo-700"
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
-                >
-                  {isLoading ? (
-                    <>
-                      <FaSpinner className="animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    "Update Designer"
-                  )}
-                </button>
+                {previewImage && (
+                  <div className="flex flex-col items-center">
+                    <img
+                      src={previewImage}
+                      alt="Preview"
+                      className="w-32 h-32 object-contain rounded-full border-4 border-white shadow-md bg-white"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">Image Preview</p>
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium text-white flex items-center gap-2 ${
+                  isLoading
+                    ? "bg-indigo-400"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500`}
+              >
+                {isLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" /> Saving...
+                  </>
+                ) : (
+                  "Update Designer"
+                )}
+              </button>
             </div>
           </form>
         </div>

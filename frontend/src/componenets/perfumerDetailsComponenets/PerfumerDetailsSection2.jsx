@@ -55,25 +55,26 @@ export default function PerfumerDetailsSection2({ perfumerDetails }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-            {visiblePerfumes.map((perfume) => (
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
+            {visiblePerfumes.map((blog) => (
               <Link
-                to={`/perfume/${perfume?.slug || ""}`}
-                key={perfume?._id || Math.random()}
-                className="group"
+                to={`/perfume/${blog.slug}`}
+                key={blog.slug}
+                className="group block"
               >
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
-                  <div className="relative overflow-hidden aspect-square">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
+                  <div className="relative aspect-square overflow-hidden">
                     <img
-                      src={perfume?.image1?.url || ""}
-                      alt={perfume?.title || "Perfume Image"}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      src={blog.image1.url}
+                      alt={blog.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 sm:p-4"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
                   <div className="p-2 sm:p-4">
-                    <h3 className="font-medium text-gray-800 text-xs sm:text-base truncate">
-                      {perfume?.title || " "}
+                    <h3 className="font-medium text-gray-800 text-sm line-clamp-3">
+                      {blog.title}
                     </h3>
                   </div>
                 </div>

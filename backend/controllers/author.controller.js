@@ -6,25 +6,26 @@ import { deleteImage } from "../utils/deleteImage.js";
 // Add a new Author
 export const addAuthor = async (req, res) => {
   const public_id = req.files?.authorPic?.[0]?.filename;
-  try {
-    const { name, title, bio } = req.body;
 
-    // Remove title from required check
+  try {
+    const { name, title, bio, metaTitle, metaDescription } = req.body;
+
+    // Basic required fields validation
     if (!name || !bio || !req.files?.authorPic) {
       await deleteImage(public_id);
       return res
         .status(400)
-        .json({ message: "Name, bio and author picture are required" });
+        .json({ message: "Name, bio, and author picture are required" });
     }
 
-    /// Create Slug from name (not title)
+    // Generate slug from name
     const slug = slugify(name, {
       lower: true,
-      strict: true, // Remove special characters
+      strict: true,
       trim: true,
     });
 
-    // Check if slug already exists
+    // Check for duplicate slug
     const existing = await Author.findOne({ slug });
     if (existing) {
       await deleteImage(public_id);
@@ -33,19 +34,25 @@ export const addAuthor = async (req, res) => {
         .json({ message: "An author with this name already exists." });
     }
 
+    // Create new author
     const newAuthor = new Author({
       name,
-      title, // optional, can be undefined or empty string
+      title, // optional
       bio,
+      slug,
+      metaTitle: metaTitle?.trim() || "",
+      metaDescription: metaDescription?.trim() || "",
       authorPic: {
         url: req.files.authorPic[0].path,
         public_id: req.files.authorPic[0].filename,
       },
-      slug,
     });
 
     await newAuthor.save();
-    res.status(201).json({ message: "Author added successfully", newAuthor });
+    res.status(201).json({
+      message: "Author added successfully",
+      newAuthor,
+    });
   } catch (error) {
     await deleteImage(public_id);
     console.error("Error in adding Author:", error);
@@ -71,12 +78,13 @@ export const getAllAuthors = async (req, res) => {
 // Update an Author
 export const updateAuthor = async (req, res) => {
   const public_id = req.files?.authorPic?.[0]?.filename;
+
   try {
     const { id } = req.params;
-    const { name, title, bio } = req.body;
+    const { name, title, bio, metaTitle, metaDescription } = req.body;
     const files = req.files;
 
-    // Remove title from required check
+    // Validate required fields
     if (!name || !bio) {
       await deleteImage(public_id);
       return res.status(400).json({ message: "Name and bio are required" });
@@ -88,7 +96,7 @@ export const updateAuthor = async (req, res) => {
       return res.status(404).json({ message: "Author not found" });
     }
 
-    // Check for slug conflict if name has changed
+    // Handle slug change if name changed
     let newSlug = existingAuthor.slug;
     if (name !== existingAuthor.name) {
       newSlug = slugify(name, { lower: true, strict: true });
@@ -104,19 +112,21 @@ export const updateAuthor = async (req, res) => {
       }
     }
 
-    // Delete old Cloudinary image if new one is uploaded
+    // Delete old image if new one uploaded
     if (files?.authorPic && existingAuthor.authorPic?.public_id) {
       await cloudinary.uploader.destroy(existingAuthor.authorPic.public_id);
     }
 
-    // Update fields
+    // Update author
     const updatedAuthor = await Author.findByIdAndUpdate(
       id,
       {
         name,
-        title, // optional, can be undefined or empty string
+        title,
         bio,
         slug: newSlug,
+        metaTitle: metaTitle?.trim() || "",
+        metaDescription: metaDescription?.trim() || "",
         authorPic: files?.authorPic
           ? {
               url: files.authorPic[0].path,

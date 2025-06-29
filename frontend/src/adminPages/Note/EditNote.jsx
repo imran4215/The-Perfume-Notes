@@ -4,47 +4,66 @@ import useAdminDataStore from "../../store/AdminDataStore";
 import JoditEditor from "jodit-react";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
+import useNoteDataStore from "../../store/NoteDataStore";
+import Loading from "../../componenets/Loading";
+import Error404 from "../../componenets/Error404";
+import PageNotFound from "../../pages/PageNotFound";
 
 function EditNote() {
   const editor = useRef(null);
   const navigate = useNavigate();
-  const { notes, categories, fetchCategoryData } = useAdminDataStore();
-  const { id } = useParams();
+  const { categories, fetchCategoryData } = useAdminDataStore();
+  const { id, slug } = useParams();
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    fetchCategoryData();
-  }, []);
+  const {
+    noteDetailsData,
+    fetchNoteDetailsData,
+    loading: noteLoading,
+    error: noteError,
+  } = useNoteDataStore();
 
-  // Find the note by id
-  const note = notes.find((note) => note._id === id);
-
-  // Initialize formData safely with fallback to empty strings or nulls
   const [formData, setFormData] = useState({
-    name: note?.name || "",
-    category: note?.category?._id || note?.category || "",
-    details: note?.details || "",
+    name: "",
+    category: "",
+    details: "",
     profilePic: null,
     coverPic: null,
+    metaTitle: "",
+    metaDescription: "",
   });
 
-  // Preview images for profile and cover pics
-  const [previewProfilePic, setPreviewProfilePic] = useState(
-    note?.profilePic?.url || null
-  );
-  const [previewCoverPic, setPreviewCoverPic] = useState(
-    note?.coverPic?.url || null
-  );
-
+  const [previewProfilePic, setPreviewProfilePic] = useState(null);
+  const [previewCoverPic, setPreviewCoverPic] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Handle text input/select changes
+  useEffect(() => {
+    fetchNoteDetailsData(slug);
+    fetchCategoryData();
+  }, [slug]);
+
+  useEffect(() => {
+    if (noteDetailsData) {
+      setFormData({
+        name: noteDetailsData.name || "",
+        category:
+          noteDetailsData.category?._id || noteDetailsData.category || "",
+        details: noteDetailsData.details || "",
+        profilePic: null,
+        coverPic: null,
+        metaTitle: noteDetailsData.metaTitle || "",
+        metaDescription: noteDetailsData.metaDescription || "",
+      });
+      setPreviewProfilePic(noteDetailsData.profilePic?.url || null);
+      setPreviewCoverPic(noteDetailsData.coverPic?.url || null);
+    }
+  }, [noteDetailsData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle file input changes + preview update
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
@@ -59,13 +78,18 @@ function EditNote() {
     }
   };
 
-  // Submit updated note data
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Optional: Add minimal validation if needed
-    if (!formData.name.trim() || !formData.category.trim()) {
-      toast.error("Name and Category are required.");
+    if (
+      !formData.name.trim() ||
+      !formData.category.trim() ||
+      !formData.metaTitle.trim() ||
+      !formData.metaDescription.trim()
+    ) {
+      toast.error(
+        "Name, Category, Meta Title, and Meta Description are required."
+      );
       return;
     }
 
@@ -75,6 +99,8 @@ function EditNote() {
     submitData.append("name", formData.name.trim());
     submitData.append("category", formData.category.trim());
     submitData.append("details", formData.details || "");
+    submitData.append("metaTitle", formData.metaTitle.trim());
+    submitData.append("metaDescription", formData.metaDescription.trim());
     if (formData.profilePic)
       submitData.append("profilePic", formData.profilePic);
     if (formData.coverPic) submitData.append("coverPic", formData.coverPic);
@@ -99,22 +125,16 @@ function EditNote() {
     }
   };
 
-  if (!note) {
-    return (
-      <div className="min-h-screen p-6 bg-gray-100 mt-16 flex justify-center items-center">
-        <div className="bg-white rounded-xl shadow-md p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Note not found
-          </h1>
-          <button
-            onClick={() => navigate("/admin/all-notes")}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-          >
-            Back to Notes
-          </button>
-        </div>
-      </div>
-    );
+  if (noteLoading) {
+    return <Loading />;
+  }
+
+  if (noteError) {
+    return <Error404 error={noteError} />;
+  }
+
+  if (!noteDetailsData) {
+    return <PageNotFound />;
   }
 
   return (
@@ -167,6 +187,38 @@ function EditNote() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Meta Title */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Meta Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="metaTitle"
+              type="text"
+              value={formData.metaTitle}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2"
+              placeholder="Enter meta title for SEO"
+            />
+          </div>
+
+          {/* Meta Description */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Meta Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none"
+              placeholder="Enter meta description for SEO"
+              rows={3}
+            />
           </div>
 
           {/* Details */}

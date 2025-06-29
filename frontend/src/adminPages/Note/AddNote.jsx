@@ -21,6 +21,8 @@ function AddNote() {
     details: "",
     profilePic: null,
     coverPic: null,
+    metaTitle: "",
+    metaDescription: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -44,9 +46,16 @@ function AddNote() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simple front-end validation for required fields except coverPic (optional)
-    if (!formData.name || !formData.category) {
-      toast.error("Name and Category are required.");
+    // Validation for required fields including metaTitle & metaDescription
+    if (
+      !formData.name ||
+      !formData.category ||
+      !formData.metaTitle ||
+      !formData.metaDescription
+    ) {
+      toast.error(
+        "Name, Category, Meta Title and Meta Description are required."
+      );
       return;
     }
 
@@ -56,6 +65,8 @@ function AddNote() {
     submitData.append("name", formData.name);
     submitData.append("category", formData.category);
     submitData.append("details", formData.details);
+    submitData.append("metaTitle", formData.metaTitle);
+    submitData.append("metaDescription", formData.metaDescription);
     if (formData.profilePic)
       submitData.append("profilePic", formData.profilePic);
     if (formData.coverPic) submitData.append("coverPic", formData.coverPic);
@@ -127,6 +138,38 @@ function AddNote() {
             </select>
           </div>
 
+          {/* Meta Title */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Meta Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              name="metaTitle"
+              type="text"
+              value={formData.metaTitle}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2"
+              placeholder="Enter meta title for SEO"
+            />
+          </div>
+
+          {/* Meta Description */}
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Meta Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 resize-none"
+              placeholder="Enter meta description for SEO"
+              rows={3}
+            />
+          </div>
+
           {/* Details */}
           <div>
             <label className="block text-gray-700 font-semibold mb-2">
@@ -179,7 +222,6 @@ function AddNote() {
                 accept="image/*"
                 onChange={handleFileChange}
                 className="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-1/2"
-                // no required attribute here, so optional
               />
               {formData.coverPic && (
                 <img

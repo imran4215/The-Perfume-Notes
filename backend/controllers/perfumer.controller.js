@@ -7,14 +7,15 @@ import { deleteImage } from "../utils/deleteImage.js";
 export const addPerfumer = async (req, res) => {
   const public_id = req.files?.image?.[0]?.filename;
   try {
-    const { name, title, intro, bio } = req.body;
+    const { name, title, intro, bio, metaTitle, metaDescription } = req.body;
 
-    // Only check for required fields: name, bio, and image
-    if (!name || !bio || !req.files?.image) {
+    // Check required fields: name, bio, image, metaTitle, metaDescription
+    if (!name || !bio || !req.files?.image || !metaTitle || !metaDescription) {
       await deleteImage(public_id);
-      return res
-        .status(400)
-        .json({ message: "Name, bio, and image are required" });
+      return res.status(400).json({
+        message:
+          "Name, bio, image, metaTitle, and metaDescription are required",
+      });
     }
 
     // Create Slug from name
@@ -38,6 +39,8 @@ export const addPerfumer = async (req, res) => {
       title, // optional
       intro, // optional
       bio,
+      metaTitle,
+      metaDescription,
       image: {
         url: req.files.image[0].path,
         public_id: req.files.image[0].filename,
@@ -94,13 +97,15 @@ export const updatePerfumer = async (req, res) => {
   const public_id = req.files?.image?.[0]?.filename;
   try {
     const { id } = req.params;
-    const { name, title, intro, bio } = req.body; // include title and intro optionally
+    const { name, title, intro, bio, metaTitle, metaDescription } = req.body;
     const files = req.files;
 
-    // Only validate required fields: name and bio
-    if (!name || !bio) {
+    // Validate required fields: name, bio, metaTitle, metaDescription
+    if (!name || !bio || !metaTitle || !metaDescription) {
       await deleteImage(public_id);
-      return res.status(400).json({ message: "Name and bio are required" });
+      return res.status(400).json({
+        message: "Name, bio, metaTitle, and metaDescription are required",
+      });
     }
 
     const existingPerfumer = await Perfumer.findById(id);
@@ -130,7 +135,7 @@ export const updatePerfumer = async (req, res) => {
       await cloudinary.uploader.destroy(existingPerfumer.image.public_id);
     }
 
-    // Update fields, keep title and intro if provided, else keep existing
+    // Update fields, keep old values if optional fields are not provided
     const updatedPerfumer = await Perfumer.findByIdAndUpdate(
       id,
       {
@@ -138,6 +143,8 @@ export const updatePerfumer = async (req, res) => {
         title: title !== undefined ? title : existingPerfumer.title,
         intro: intro !== undefined ? intro : existingPerfumer.intro,
         bio,
+        metaTitle,
+        metaDescription,
         image: files?.image
           ? {
               url: files.image[0].path,

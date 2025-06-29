@@ -7,13 +7,13 @@ import JoditEditor from "jodit-react";
 import useBlogDataStore from "../../store/BlogDataStore";
 import useAdminDataStore from "../../store/AdminDataStore";
 
+/* ────────────────────────────────────────────────────────── */
 function EditBlog() {
-  const { id } = useParams();
+  const { slug: currentSlug } = useParams(); // slug from URL
   const navigate = useNavigate();
-  const editor = useRef(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  /* ───────────────── fetch dropdown data ───────────────── */
+  /* dropdown data from global store */
   const {
     designers,
     perfumers,
@@ -25,122 +25,131 @@ function EditBlog() {
     fetchNoteData,
   } = useAdminDataStore();
 
+  /* blog details from global store */
+  const { blogDetails, fetchBlogDetails } = useBlogDataStore();
+
+  /* ── initial fetch on mount ───────────────────────────── */
   useEffect(() => {
+    fetchBlogDetails(currentSlug);
     fetchAuthorData();
     fetchDesignerData();
     fetchPerfumerData();
     fetchNoteData();
-  }, []);
+  }, [currentSlug]);
 
-  /* ───────────────── current blog (may be undefined) ───── */
-  const { blogData } = useBlogDataStore();
-  const blog = blogData.find((b) => b._id === id);
-
-  /* ───────────────── local state, all with safe defaults ─ */
+  /* ── form state ───────────────────────────────────────── */
   const [formData, setFormData] = useState({
-    title: blog?.title || "",
-    subtitle: blog?.subtitle || "",
-    releaseDate: blog?.releaseDate || "",
-    brand: blog?.brand?._id || "",
-    perfumer: blog?.perfumer?._id || "",
-    description1: blog?.description1 || "",
-    description2: blog?.description2 || "",
-    author: blog?.author?._id || "",
+    title: "",
+    subtitle: "",
+    slug: "",
+    releaseDate: "",
+    brand: "",
+    perfumer: "",
+    category: "",
+    description1: "",
+    description2: "",
+    author: "",
+    metaTitle: "",
+    metaDescription: "",
   });
 
   const [selectedNotes, setSelectedNotes] = useState({
-    top: blog?.notes?.top?.map((n) => n._id) || [],
-    middle: blog?.notes?.middle?.map((n) => n._id) || [],
-    base: blog?.notes?.base?.map((n) => n._id) || [],
+    top: [],
+    middle: [],
+    base: [],
   });
+  const [accords, setAccords] = useState([
+    { name: "", percentage: "", color: "#000000" },
+  ]);
+  const [images, setImages] = useState([null, null]);
+  const [imagePreviews, setImagePreviews] = useState([null, null]);
+
+  /* ── sync state once blog data arrives ────────────────── */
+  useEffect(() => {
+    if (!blogDetails?._id) return;
+
+    setFormData({
+      title: blogDetails.title || "",
+      subtitle: blogDetails.subtitle || "",
+      slug: blogDetails.slug || "",
+      releaseDate: blogDetails.releaseDate || "",
+      brand: blogDetails.brand?._id || "",
+      perfumer: blogDetails.perfumer?._id || "",
+      category: blogDetails.category || "",
+      description1: blogDetails.description1 || "",
+      description2: blogDetails.description2 || "",
+      author: blogDetails.author?._id || "",
+      metaTitle: blogDetails.metaTitle || "",
+      metaDescription: blogDetails.metaDescription || "",
+    });
+
+    setSelectedNotes({
+      top: (blogDetails.notes?.top || []).map((n) => n._id),
+      middle: (blogDetails.notes?.middle || []).map((n) => n._id),
+      base: (blogDetails.notes?.base || []).map((n) => n._id),
+    });
+
+    setAccords(
+      blogDetails.accords?.length
+        ? blogDetails.accords
+        : [{ name: "", percentage: "", color: "#000000" }]
+    );
+
+    setImagePreviews([
+      blogDetails.image1?.url || null,
+      blogDetails.image2?.url || null,
+    ]);
+  }, [blogDetails]);
+
+  /* ── years dropdown array ─────────────────────────────── */
+  const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
+
+  /* ── helpers ──────────────────────────────────────────── */
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleNoteToggle = (type, id) =>
+    setSelectedNotes((p) => ({
+      ...p,
+      [type]: p[type].includes(id)
+        ? p[type].filter((x) => x !== id)
+        : [...p[type], id],
+    }));
 
   const [searchTerms, setSearchTerms] = useState({
     top: "",
     middle: "",
     base: "",
   });
-
-  const [accords, setAccords] = useState(
-    blog?.accords?.length
-      ? blog.accords
-      : [{ name: "", percentage: "", color: "#000000" }]
-  );
-
-  /* images that user might replace */
-  const [images, setImages] = useState([null, null]);
-  const [imagePreviews, setImagePreviews] = useState([
-    blog?.image1?.url || null,
-    blog?.image2?.url || null,
-  ]);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  /* years for dropdown */
-  const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
-
-  /* ───────────────── helpers ───────────────────────────── */
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleNoteToggle = (type, noteId) => {
-    setSelectedNotes((prev) => ({
-      ...prev,
-      [type]: prev[type].includes(noteId)
-        ? prev[type].filter((id) => id !== noteId)
-        : [...prev[type], noteId],
-    }));
-  };
-
-  const handleSearchChange = (type, value) => {
-    setSearchTerms((prev) => ({
-      ...prev,
-      [type]: value.toLowerCase(),
-    }));
-  };
+  const handleSearchChange = (type, val) =>
+    setSearchTerms((p) => ({ ...p, [type]: val.toLowerCase() }));
 
   const filteredNotes = (type) => {
     if (!notes) return [];
+    const sorted = [...notes].sort((a, b) => a.name.localeCompare(b.name));
+    return searchTerms[type]
+      ? sorted.filter((n) => n.name.toLowerCase().includes(searchTerms[type]))
+      : sorted;
+  };
 
-    // Sort notes alphabetically by name
-    const sortedNotes = [...notes].sort((a, b) => a.name.localeCompare(b.name));
-
-    if (!searchTerms[type]) return sortedNotes;
-
-    return sortedNotes.filter((note) =>
-      note.name.toLowerCase().includes(searchTerms[type])
+  const handleAccordChange = (i, field, val) =>
+    setAccords((p) =>
+      p.map((a, idx) => (idx === i ? { ...a, [field]: val } : a))
     );
-  };
-
-  const handleAccordChange = (idx, field, value) => {
-    const updated = [...accords];
-    updated[idx][field] = value;
-    setAccords(updated);
-  };
 
   const handleAddAccord = () =>
-    setAccords((prev) => [
-      ...prev,
-      { name: "", percentage: "", color: "#000000" },
-    ]);
+    setAccords((p) => [...p, { name: "", percentage: "", color: "#000000" }]);
 
-  const handleRemoveAccord = (idx) =>
-    accords.length > 1 &&
-    setAccords((prev) => prev.filter((_, i) => i !== idx));
+  const handleRemoveAccord = (i) =>
+    accords.length > 1 && setAccords((p) => p.filter((_, idx) => idx !== i));
 
-  const handleImageChange = (e, idx) => {
+  const handleImageChange = (e, i) => {
     const file = e.target.files[0];
     if (!file) return;
-    const newImgs = [...images];
-    const newPrev = [...imagePreviews];
-    newImgs[idx] = file;
-    newPrev[idx] = URL.createObjectURL(file);
-    setImages(newImgs);
-    setImagePreviews(newPrev);
+    setImages((p) => ((p[i] = file), [...p]));
+    setImagePreviews((p) => ((p[i] = URL.createObjectURL(file)), [...p]));
   };
 
-  /* Very light validation – only Title is mandatory */
   const validateForm = () => {
     if (!formData.title.trim()) {
       toast.error("Title is required");
@@ -149,7 +158,9 @@ function EditBlog() {
     return true;
   };
 
-  /* ───────────────── form submit ───────────────────────── */
+  /* ── submit ───────────────────────────────────────────── */
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -157,17 +168,18 @@ function EditBlog() {
     setIsSubmitting(true);
     try {
       const data = new FormData();
-      /* append scalars */
       Object.entries(formData).forEach(([k, v]) => data.append(k, v));
-      /* append JSON strings */
-      data.append("accords", JSON.stringify(accords));
       data.append("notes", JSON.stringify(selectedNotes));
-      /* append only the images user changed */
+      data.append("accords", JSON.stringify(accords));
       images.forEach((img, idx) => img && data.append(`image${idx + 1}`, img));
 
-      await axios.put(`${BASE_URL}/api/perfumeBlog/updateBlog/${id}`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await axios.put(
+        `${BASE_URL}/api/perfumeBlog/updateBlog/${currentSlug}`,
+        data,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       toast.success("Blog updated successfully!");
       navigate("/admin/all-blogs");
@@ -179,17 +191,18 @@ function EditBlog() {
     }
   };
 
-  /* ───────────────── loader / 404 ──────────────────────── */
-  if (!blog) return <div className="text-center py-10">Blog not found</div>;
+  /* ── early fallback ───────────────────────────────────── */
+  if (!blogDetails?._id)
+    return <div className="text-center py-10 mt-[200px]">Loading…</div>;
 
-  /* ───────────────── view ──────────────────────────────── */
+  /* ── JSX ──────────────────────────────────────────────── */
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-14">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Edit Blog</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ─── Title & Subtitle ─────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Title / Subtitle / Slug */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             label="Title*"
             name="title"
@@ -203,46 +216,72 @@ function EditBlog() {
             value={formData.subtitle}
             onChange={handleChange}
           />
+          <Input
+            label="Slug (URL)*"
+            name="slug"
+            value={formData.slug}
+            onChange={handleChange}
+            required
+          />
         </div>
 
-        {/* ─── Release Year / Brand / Perfumer ─────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Release Year */}
+        {/* Release / Brand / Perfumer / Category */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Select
-            label="Release Year"
+            label="Release Year*"
             name="releaseDate"
             value={formData.releaseDate}
             onChange={handleChange}
             options={[
-              { value: "", label: "Select Year" },
+              { value: "", label: "Select" },
               ...years.map((y) => ({ value: y, label: y })),
             ]}
+            required
           />
-          {/* Brand */}
           <Select
-            label="Brand"
+            label="Brand*"
             name="brand"
             value={formData.brand}
             onChange={handleChange}
             options={[
-              { value: "", label: "Select Brand" },
-              ...designers.map((d) => ({ value: d._id, label: d.name })),
+              { value: "", label: "Select" },
+              ...(designers || []).map((d) => ({
+                value: d._id,
+                label: d.name,
+              })),
             ]}
+            required
           />
-          {/* Perfumer */}
           <Select
-            label="Perfumer"
+            label="Perfumer*"
             name="perfumer"
             value={formData.perfumer}
             onChange={handleChange}
             options={[
-              { value: "", label: "Select Perfumer" },
-              ...perfumers.map((p) => ({ value: p._id, label: p.name })),
+              { value: "", label: "Select" },
+              ...(perfumers || []).map((p) => ({
+                value: p._id,
+                label: p.name,
+              })),
             ]}
+            required
+          />
+          <Select
+            label="Category*"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            options={[
+              { value: "", label: "Select" },
+              { value: "men", label: "Men" },
+              { value: "women", label: "Women" },
+              { value: "unisex", label: "Unisex" },
+            ]}
+            required
           />
         </div>
 
-        {/* ─── Notes ───────────────────────────────────── */}
+        {/* Notes */}
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
             Fragrance Notes
@@ -262,7 +301,7 @@ function EditBlog() {
           </div>
         </div>
 
-        {/* ─── Accords ────────────────────────────────── */}
+        {/* Accords */}
         <AccordEditor
           accords={accords}
           change={handleAccordChange}
@@ -270,7 +309,7 @@ function EditBlog() {
           remove={handleRemoveAccord}
         />
 
-        {/* ─── Descriptions ───────────────────────────── */}
+        {/* Descriptions */}
         <RichText
           label="Description 1"
           value={formData.description1}
@@ -286,7 +325,29 @@ function EditBlog() {
           }
         />
 
-        {/* ─── Images ─────────────────────────────────── */}
+        {/* Meta Title / Meta Description */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Meta Title (SEO)"
+            name="metaTitle"
+            value={formData.metaTitle}
+            onChange={handleChange}
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Meta Description (SEO)
+            </label>
+            <textarea
+              name="metaDescription"
+              value={formData.metaDescription}
+              onChange={handleChange}
+              rows="3"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none"
+            />
+          </div>
+        </div>
+
+        {/* Images */}
         <ImageInput
           index={0}
           preview={imagePreviews[0]}
@@ -298,19 +359,20 @@ function EditBlog() {
           change={handleImageChange}
         />
 
-        {/* ─── Author ─────────────────────────────────── */}
+        {/* Author */}
         <Select
-          label="Author"
+          label="Author*"
           name="author"
           value={formData.author}
           onChange={handleChange}
           options={[
-            { value: "", label: "Select Author" },
-            ...authors.map((a) => ({ value: a._id, label: a.name })),
+            { value: "", label: "Select" },
+            ...(authors || []).map((a) => ({ value: a._id, label: a.name })),
           ]}
+          required
         />
 
-        {/* ─── Submit ─────────────────────────────────── */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={isSubmitting}
@@ -325,33 +387,33 @@ function EditBlog() {
   );
 }
 
-/* -------------------------------------------------------------------
- * Small presentational helpers
- * -----------------------------------------------------------------*/
+/* ──────────────────────────────────────────────────────────
+ * Small reusable inputs
+ * ───────────────────────────────────────────────────────── */
 const Input = ({ label, ...props }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">
       {label}
     </label>
     <input
-      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
       {...props}
+      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
     />
   </div>
 );
 
-const Select = ({ label, options = [], ...props }) => (
+const Select = ({ label, options, ...props }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-1">
       {label}
     </label>
     <select
-      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
       {...props}
+      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
     >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
         </option>
       ))}
     </select>
@@ -368,20 +430,17 @@ const NoteColumn = ({
 }) => (
   <div className="border rounded-lg p-3">
     <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-      {type} Notes
+      {type} notes
     </label>
-
-    {/* Search input */}
     <div className="mb-3">
       <input
         type="text"
-        placeholder={`Search ${type} notes...`}
+        placeholder={`Search ${type} notes…`}
         value={searchTerm}
         onChange={onSearchChange}
         className="w-full p-2 border border-gray-300 rounded text-sm"
       />
     </div>
-
     <div className="max-h-48 overflow-y-auto space-y-2">
       {notes.map((n) => (
         <div key={n._id} className="flex items-center">
@@ -407,52 +466,45 @@ const NoteColumn = ({
 const AccordEditor = ({ accords, change, add, remove }) => (
   <div>
     <h3 className="text-lg font-semibold text-gray-800 mb-2">Accords</h3>
-    {accords.map((a, idx) => (
+    {accords.map((a, i) => (
       <div
-        key={idx}
+        key={i}
         className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3 items-end"
       >
         <Input
           label="Name"
           value={a.name}
-          onChange={(e) => change(idx, "name", e.target.value)}
+          onChange={(e) => change(i, "name", e.target.value)}
         />
         <Input
           label="Percentage"
           type="number"
-          min="0"
-          max="100"
           value={a.percentage}
-          onChange={(e) => change(idx, "percentage", e.target.value)}
+          onChange={(e) => change(i, "percentage", e.target.value)}
         />
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Color
           </label>
           <div className="flex items-center space-x-3">
-            {/* Hex Code Input (Editable + Copy/Paste) */}
             <input
               type="text"
               value={a.color}
-              onChange={(e) => change(idx, "color", e.target.value)}
+              onChange={(e) => change(i, "color", e.target.value)}
               className="w-24 px-2 py-1 border border-gray-300 rounded text-sm font-mono"
-              placeholder="#FFFFFF"
             />
-
-            {/* Color Picker */}
             <input
               type="color"
               value={a.color}
-              onChange={(e) => change(idx, "color", e.target.value)}
-              className="h-10 w-10 rounded border border-gray-300 cursor-pointer"
+              onChange={(e) => change(i, "color", e.target.value)}
+              className="h-10 w-10 rounded border"
             />
           </div>
         </div>
-
         {accords.length > 1 && (
           <button
             type="button"
-            onClick={() => remove(idx)}
+            onClick={() => remove(i)}
             className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
           >
             Remove
@@ -465,7 +517,7 @@ const AccordEditor = ({ accords, change, add, remove }) => (
       onClick={add}
       className="mt-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition"
     >
-      + Add Another Accord
+      + Add Another Accord
     </button>
   </div>
 );
@@ -496,13 +548,11 @@ const ImageInput = ({ index, preview, change }) => (
       className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
     />
     {preview && (
-      <div className="mt-3">
-        <img
-          src={preview}
-          alt={`Preview ${index + 1}`}
-          className="w-full h-48 object-contain rounded border"
-        />
-      </div>
+      <img
+        src={preview}
+        alt={`Preview ${index + 1}`}
+        className="mt-3 w-full h-48 object-contain rounded border"
+      />
     )}
   </div>
 );

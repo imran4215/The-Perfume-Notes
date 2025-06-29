@@ -25,7 +25,7 @@ export default function Body() {
           <p className="text-gray-500">No blogs available at the moment.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
           {blogData.map((blog) => (
             <Link
               to={`/perfume/${blog.slug}`}
@@ -43,7 +43,7 @@ export default function Body() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <div className="p-2 sm:p-4">
-                  <h3 className="font-medium text-gray-800 text-xs sm:text-base line-clamp-2">
+                  <h3 className="font-medium text-gray-800 text-sm line-clamp-3">
                     {blog.title}
                   </h3>
                 </div>

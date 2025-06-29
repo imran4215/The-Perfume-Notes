@@ -7,27 +7,33 @@ import { deleteImage } from "../utils/deleteImage.js";
 export const addDesigner = async (req, res) => {
   const public_id = req.files?.logo?.[0]?.filename;
   try {
-    const { name, description } = req.body;
+    const { name, description, metaTitle, metaDescription } = req.body;
 
-    if (!name || !description || !req.files?.logo) {
-      await deleteImage(public_id);
+    if (
+      !name ||
+      !description ||
+      !metaTitle ||
+      !metaDescription ||
+      !req.files?.logo
+    ) {
+      if (public_id) await deleteImage(public_id);
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    /// Create Slug from title
+    // Create slug from name
     const slug = slugify(name, {
       lower: true,
-      strict: true, // Remove special characters
+      strict: true,
       trim: true,
     });
 
     // Check if slug already exists
     const existing = await Designer.findOne({ slug });
     if (existing) {
-      await deleteImage(public_id);
+      if (public_id) await deleteImage(public_id);
       return res
         .status(409)
-        .json({ message: "A Brand with this name already exists." });
+        .json({ message: "A Designer with this name already exists." });
     }
 
     const newDesigner = new Designer({
@@ -37,15 +43,19 @@ export const addDesigner = async (req, res) => {
         public_id: req.files.logo[0].filename,
       },
       description,
+      metaTitle,
+      metaDescription,
       slug,
     });
 
     await newDesigner.save();
-    res
-      .status(201)
-      .json({ message: "Designer added successfully", newDesigner });
+
+    res.status(201).json({
+      message: "Designer added successfully",
+      newDesigner,
+    });
   } catch (error) {
-    await deleteImage(public_id);
+    if (public_id) await deleteImage(public_id);
     console.error("Error in adding designer:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -54,7 +64,7 @@ export const addDesigner = async (req, res) => {
 // Get all Designers
 export const getAllDesigners = async (req, res) => {
   try {
-    const designers = await Designer.find({}, "name logo slug");
+    const designers = await Designer.find({}, "name logo slug _id");
 
     res.status(200).json({
       message: "Designers fetched successfully",
@@ -90,66 +100,73 @@ export const getDesignerBySlug = async (req, res) => {
 export const updateDesigner = async (req, res) => {
   const public_id = req.files?.logo?.[0]?.filename;
   try {
-    const { id } = req.params;
-    const { name, description } = req.body;
+    const { slug } = req.params;
+    const { name, description, metaTitle, metaDescription } = req.body;
     const files = req.files;
 
-    if (!name || !description) {
-      await deleteImage(public_id);
+    // Validation
+    if (!name || !description || !metaTitle || !metaDescription) {
+      if (public_id) await deleteImage(public_id);
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingDesigner = await Designer.findById(id);
+    const existingDesigner = await Designer.findOne({ slug });
     if (!existingDesigner) {
-      await deleteImage(public_id);
+      if (public_id) await deleteImage(public_id);
       return res.status(404).json({ message: "Designer not found" });
     }
 
-    // Check for slug conflict if name has changed
+    // Handle slug update
     let newSlug = existingDesigner.slug;
     if (name !== existingDesigner.name) {
       newSlug = slugify(name, { lower: true, strict: true });
-      const existingSlug = await Designer.findOne({
+
+      const slugConflict = await Designer.findOne({
         slug: newSlug,
-        _id: { $ne: id },
+        _id: { $ne: existingDesigner._id },
       });
-      if (existingSlug) {
-        await deleteImage(public_id);
+
+      if (slugConflict) {
+        if (public_id) await deleteImage(public_id);
         return res
           .status(400)
           .json({ message: "Another Designer with this name already exists" });
       }
     }
 
-    // Delete old Cloudinary image if new one is uploaded
+    // Delete old image if new one is uploaded
     if (files?.logo && existingDesigner.logo?.public_id) {
       await cloudinary.uploader.destroy(existingDesigner.logo.public_id);
     }
 
-    // Update fields
-    const updatedDesigner = await Designer.findByIdAndUpdate(
-      id,
-      {
-        name,
-        slug: newSlug,
-        description,
-        logo: files?.logo
-          ? {
-              url: files.logo[0].path,
-              public_id: files.logo[0].filename,
-            }
-          : existingDesigner.logo,
-      },
+    // Prepare update payload
+    const updatePayload = {
+      name,
+      slug: newSlug,
+      description,
+      metaTitle,
+      metaDescription,
+      logo: files?.logo
+        ? {
+            url: files.logo[0].path,
+            public_id: files.logo[0].filename,
+          }
+        : existingDesigner.logo,
+    };
+
+    const updatedDesigner = await Designer.findOneAndUpdate(
+      { slug },
+      updatePayload,
       { new: true }
     );
 
-    res
+    return res
       .status(200)
       .json({ message: "Designer updated successfully", updatedDesigner });
   } catch (error) {
-    await deleteImage(public_id);
+    if (public_id) await deleteImage(public_id);
     console.error("Error in updating designer:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 

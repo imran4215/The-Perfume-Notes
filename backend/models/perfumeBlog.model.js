@@ -81,6 +81,18 @@ const perfumeBlogSchema = new mongoose.Schema(
       ref: "Author",
       required: true,
     },
+    category: {
+      type: String,
+      required: true,
+    },
+    metaTitle: {
+      type: String,
+      required: true,
+    },
+    metaDescription: {
+      type: String,
+      required: true,
+    },
     slug: {
       type: String,
       required: true,

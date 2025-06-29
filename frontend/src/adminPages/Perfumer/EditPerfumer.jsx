@@ -4,23 +4,25 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft, FaUpload, FaSpinner } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import useAdminDataStore from "../../store/AdminDataStore";
+import usePerfumerDataStore from "../../store/PerfumerDataStore";
 import JoditEditor from "jodit-react";
 
 function EditPerfumer() {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
-  const { perfumers } = useAdminDataStore();
   const editor = useRef(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const { perfumerDetailsData, fetchPerfumerDetailsData } =
+    usePerfumerDataStore();
 
-  const perfumer = perfumers.find((p) => p._id === id);
-
+  // New: add meta fields
   const [formData, setFormData] = useState({
     name: "",
     title: "",
     intro: "",
     bio: "",
+    metaTitle: "",
+    metaDescription: "",
     image: null,
   });
 
@@ -28,20 +30,26 @@ function EditPerfumer() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (perfumer) {
+    fetchPerfumerDetailsData(slug);
+  }, [slug]);
+
+  useEffect(() => {
+    if (perfumerDetailsData) {
       setFormData({
-        name: perfumer.name || "",
-        title: perfumer.title || "", // optional
-        intro: perfumer.intro || "", // optional
-        bio: perfumer.bio || "",
+        name: perfumerDetailsData.name || "",
+        title: perfumerDetailsData.title || "",
+        intro: perfumerDetailsData.intro || "",
+        bio: perfumerDetailsData.bio || "",
+        metaTitle: perfumerDetailsData.metaTitle || "",
+        metaDescription: perfumerDetailsData.metaDescription || "",
         image: null,
       });
-      setPreviewImage(perfumer.image?.url || null);
+      setPreviewImage(perfumerDetailsData.image?.url || null);
     } else {
       toast.error("Perfumer not found.");
       navigate("/admin/all-perfumers");
     }
-  }, [perfumer, navigate]);
+  }, [perfumerDetailsData, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,9 +69,16 @@ function EditPerfumer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Only require name
-    if (!formData.name.trim()) {
-      toast.error("Name is required");
+    // Validate required fields
+    if (
+      !formData.name.trim() ||
+      !formData.bio.trim() ||
+      !formData.metaTitle.trim() ||
+      !formData.metaDescription.trim()
+    ) {
+      toast.error(
+        "Name, biography, meta title, and meta description are required."
+      );
       return;
     }
 
@@ -72,9 +87,11 @@ function EditPerfumer() {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name.trim());
-      formDataToSend.append("title", formData.title?.trim() || ""); // send empty string if no title
-      formDataToSend.append("intro", formData.intro?.trim() || ""); // send empty string if no intro
-      formDataToSend.append("bio", formData.bio || "");
+      formDataToSend.append("title", formData.title.trim() || "");
+      formDataToSend.append("intro", formData.intro.trim() || "");
+      formDataToSend.append("bio", formData.bio);
+      formDataToSend.append("metaTitle", formData.metaTitle.trim());
+      formDataToSend.append("metaDescription", formData.metaDescription.trim());
 
       if (formData.image) {
         formDataToSend.append("image", formData.image);
@@ -164,10 +181,10 @@ function EditPerfumer() {
               />
             </div>
 
-            {/* Bio (required) */}
+            {/* Bio */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
-                Bio*
+                Bio <span className="text-red-500">*</span>
               </label>
               <JoditEditor
                 ref={editor}
@@ -178,6 +195,38 @@ function EditPerfumer() {
                     bio: newContent,
                   }))
                 }
+              />
+            </div>
+
+            {/* Meta Title */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="metaTitle"
+                value={formData.metaTitle}
+                onChange={handleChange}
+                placeholder="Enter SEO meta title"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Meta Description */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Meta Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="metaDescription"
+                value={formData.metaDescription}
+                onChange={handleChange}
+                rows={3}
+                placeholder="Enter SEO meta description"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 

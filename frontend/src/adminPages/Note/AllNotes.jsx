@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useAdminDataStore from "../../store/AdminDataStore";
 import {
@@ -20,40 +20,53 @@ function AllNotes() {
   const navigate = useNavigate();
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+  // Memoize the filtered notes to prevent recalculation on every render
+  const filteredNotes = useMemo(() => {
+    return notes.filter((note) =>
+      note.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [notes, searchTerm]);
+
+  // Fetch data only once when component mounts
   useEffect(() => {
-    fetchNoteData();
-  }, []);
+    if (notes.length === 0) {
+      fetchNoteData();
+    }
+  }, []); // Empty dependency array ensures this runs only once
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredNotes = notes.filter((note) =>
-    note.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoize the handleEdit and handleDelete functions
+  const handleEdit = useMemo(
+    () => (id, slug) => {
+      navigate(`/admin/edit-note/${id}/${slug}`);
+    },
+    []
   );
 
-  const handleEdit = (noteId) => {
-    navigate(`/admin/edit-note/${noteId}`);
-  };
-
-  const handleDelete = async (noteId) => {
-    if (window.confirm("Are you sure you want to delete this note?")) {
-      try {
-        const res = await axios.delete(
-          `${BASE_URL}/api/note/deleteNote/${noteId}`
-        );
-        if (res.status === 200) {
-          toast.success("Note deleted successfully!");
-          removeNote(noteId);
+  const handleDelete = useMemo(
+    () => async (noteId) => {
+      if (window.confirm("Are you sure you want to delete this note?")) {
+        try {
+          const res = await axios.delete(
+            `${BASE_URL}/api/note/deleteNote/${noteId}`
+          );
+          if (res.status === 200) {
+            toast.success("Note deleted successfully!");
+            removeNote(noteId);
+          }
+        } catch (error) {
+          console.error("Failed to delete note:", error);
+          toast.error("Failed to delete note. Please try again.");
         }
-      } catch (error) {
-        console.error("Failed to delete note:", error);
-        toast.error("Failed to delete note. Please try again.");
       }
-    }
-  };
+    },
+    []
+  );
 
-  if (loading) return <Loading />;
+  if (loading && notes.length === 0) return <Loading />;
   if (error) return <Error404 error={error} />;
 
   return (
@@ -135,7 +148,7 @@ function AllNotes() {
 
                 <div className="flex space-x-1 w-full">
                   <button
-                    onClick={() => handleEdit(note._id)}
+                    onClick={() => handleEdit(note._id, note.slug)}
                     className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded"
                   >
                     <FaEdit /> Edit

@@ -34,18 +34,18 @@ function NoteDetails() {
     <div>
       {/* Meta ags for SEO */}
       <Helmet>
-        <title>{noteName} | Perfume Note Details</title>
+        <title>{noteDetailsData.metaTitle || noteName} </title>
         <meta
           name="description"
-          content={`Explore in-depth details about the perfume note "${noteName}", including its characteristics and uses.`}
+          content={`${noteDetailsData.metaDescription || noteName}`}
         />
         <meta
           property="og:title"
-          content={`${noteName} | Perfume Note Details`}
+          content={`${noteDetailsData.metaTitle || noteName}`}
         />
         <meta
           property="og:description"
-          content={`Discover everything about the note "${noteName}" used in fragrances.`}
+          content={` ${noteDetailsData.metaDescription || noteName}`}
         />
         <meta property="og:type" content="article" />
         <meta
